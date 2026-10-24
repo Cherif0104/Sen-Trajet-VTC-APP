@@ -82,7 +82,7 @@ export const PAY_METHODS: { id: PayMethod; label: string; hint: string }[] = [
   { id: "wave", label: "Wave", hint: "Confirmé automatiquement" },
   { id: "orange", label: "Orange Money", hint: "Confirmé automatiquement" },
   { id: "free", label: "Free Money", hint: "Confirmé automatiquement" },
-  { id: "wallet", label: "Portefeuille Yoon", hint: "Débit du solde" },
+  { id: "wallet", label: "Portefeuille Sen Trajet", hint: "Débit du solde" },
   { id: "cash", label: "Espèces", hint: "Remises au chauffeur" },
 ]
 
@@ -371,7 +371,7 @@ export function suggestSeatPrice(originCity: string, destCity: string, distanceK
 
 export function priceBandError(price: number, suggestion: number) {
   if (price < suggestion * 0.6) {
-    return "Ce prix est trop bas pour le trajet. Yoon le refuse pour protéger le chauffeur."
+    return "Ce prix est trop bas pour le trajet. Sen Trajet le refuse pour protéger le chauffeur."
   }
   if (price > suggestion * 1.7) {
     return "Ce prix dépasse largement le tarif habituel du corridor."

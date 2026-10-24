@@ -111,7 +111,7 @@ export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: 
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {trip.serene ? <Badge variant="secondary">Serein</Badge> : null}
-                  {trip.driver.launchFleet ? <Badge variant="outline">Réseau Yoon</Badge> : <Badge variant="outline">Indépendant</Badge>}
+                  {trip.driver.launchFleet ? <Badge variant="outline">Réseau Sen Trajet</Badge> : <Badge variant="outline">Indépendant</Badge>}
                   {trip.amenities.slice(0, 3).map((item) => (
                     <Badge key={item} variant="outline">
                       {AMENITY_LABELS[item] ?? item}

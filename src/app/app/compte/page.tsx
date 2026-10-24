@@ -127,7 +127,7 @@ export default function AccountPage() {
       <section className="flex flex-col gap-3 rounded-3xl bg-card px-4 py-4">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Portefeuille Yoon</p>
+            <p className="text-sm text-muted-foreground">Portefeuille Sen Trajet</p>
             <p className="font-display text-4xl">{fcfa(me.balance)}</p>
           </div>
         </div>

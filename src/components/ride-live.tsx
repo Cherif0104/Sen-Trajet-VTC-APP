@@ -70,11 +70,11 @@ export function RideLive({ id }: { id: string }) {
   }
 
   async function share(current: RideDTO) {
-    const text = `Course Yoon : ${current.pickup.label} → ${current.dropoff.label}${
+    const text = `Course Sen Trajet : ${current.pickup.label} → ${current.dropoff.label}${
       current.driver ? `. ${current.driver.name}, ${current.driver.plate}` : ""
     }.`
     if (navigator.share) {
-      await navigator.share({ title: "Ma course Yoon", text }).catch(() => undefined)
+      await navigator.share({ title: "Ma course Sen Trajet", text }).catch(() => undefined)
       return
     }
     await navigator.clipboard.writeText(text)
@@ -140,7 +140,7 @@ export function RideLive({ id }: { id: string }) {
           <div className="flex flex-col gap-2 rounded-3xl bg-card px-4 py-4">
             <div className="flex items-center justify-between gap-2">
               <p className="font-medium">{ride.driver.name}</p>
-              <Badge variant="secondary">{ride.driver.launchFleet ? "Réseau Yoon" : "Indépendant"}</Badge>
+              <Badge variant="secondary">{ride.driver.launchFleet ? "Réseau Sen Trajet" : "Indépendant"}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {ride.driver.color} {ride.driver.make} {ride.driver.model} · {ride.driver.plate} · {ride.driver.rating.toFixed(1).replace(".", ",")}
@@ -155,7 +155,7 @@ export function RideLive({ id }: { id: string }) {
           </div>
         ) : ride.status === "matching" ? (
           <p className="text-sm text-muted-foreground">
-            Le réseau Yoon accepte en quelques secondes. Un chauffeur indépendant en ligne et proche passe devant.
+            Le réseau Sen Trajet accepte en quelques secondes. Un chauffeur indépendant en ligne et proche passe devant.
           </p>
         ) : null}
 
@@ -244,7 +244,7 @@ export function RideLive({ id }: { id: string }) {
             <SheetContent side="bottom" className="rounded-t-3xl">
               <SheetHeader>
                 <SheetTitle>Urgence</SheetTitle>
-                <SheetDescription>Numéros officiels. Yoon ne remplace pas les secours.</SheetDescription>
+                <SheetDescription>Numéros officiels. Sen Trajet ne remplace pas les secours.</SheetDescription>
               </SheetHeader>
               <div className="flex flex-col gap-2 px-4 pb-6">
                 {[

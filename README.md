@@ -1,8 +1,8 @@
-# Yoon
+# Sen Trajet
 
 Courses immédiates et sièges réservés, pour le Sénégal. Le prix en francs CFA est calculé avant la confirmation, le dispatch et les remboursements tournent sans validation manuelle.
 
-Yoon veut dire « le chemin » en wolof. La promesse : *la route, sans négocier au feu.*
+Sen Trajet : *sen* pour le Sénégal, *trajet* pour la route. La promesse : *la route, sans négocier au feu.*
 
 ## Lancer
 
@@ -27,7 +27,7 @@ Awa a 15 000 F de crédit. Moussa est chauffeur Éco, hors ligne, Hyundai Grand 
 - **Course** : Jakarta, Éco, Confort, 7 places. Affectation automatique du chauffeur libre le plus proche. Un indépendant en ligne passe devant le réseau de démonstration.
 - **Covoiturage** : le chauffeur publie un départ, les passagers réservent un ou plusieurs sièges. Le départ est maintenu même si le véhicule n’est pas plein.
 - **Trajet Serein** : conductrice uniquement. S’il n’y en a pas, la course est refusée au lieu d’être réassignée en silence.
-- **Paiement** : Wave, Orange Money, Free Money, portefeuille Yoon, espèces. En pré-production, le mobile money se confirme sans débit réel. Le portefeuille, lui, est débité et recrédité pour de vrai dans la base.
+- **Paiement** : Wave, Orange Money, Free Money, portefeuille Sen Trajet, espèces. En pré-production, le mobile money se confirme sans débit réel. Le portefeuille, lui, est débité et recrédité pour de vrai dans la base.
 - **Commission** : 12 % sur Éco, Confort et 7 places, 10 % sur le Jakarta et le covoiturage. Le net est montré au chauffeur avant d’accepter.
 - **Vérification chauffeur** : mobile sénégalais et plaque du type `DK 1234 AB`. Une note sous 3,8 après six évaluations bloque la mise en ligne.
 

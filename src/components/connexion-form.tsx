@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { YoonMark } from "@/components/yoon-mark"
+import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -32,9 +32,9 @@ export function ConnexionForm({ next }: { next: string }) {
   return (
     <div className="grid min-h-dvh md:grid-cols-[minmax(0,1fr)_28rem]">
       <aside className="hidden flex-col justify-between bg-accent px-10 py-12 text-accent-foreground md:flex">
-        <YoonMark className="[&_svg]:text-accent-foreground" />
+        <SenTrajetMark className="[&_span]:text-accent-foreground [&_span_span]:text-accent-foreground/70" />
         <div className="flex max-w-md flex-col gap-4">
-          <p className="font-display text-5xl leading-[1.05]">Sama yoon.</p>
+          <p className="font-display text-5xl leading-[1.05]">Sen Trajet.</p>
           <p className="text-accent-foreground/80">
             Un compte pour demander une course, réserver un siège, ou publier un départ.
           </p>
@@ -42,9 +42,9 @@ export function ConnexionForm({ next }: { next: string }) {
         <p className="text-sm text-accent-foreground/70">15 000 F de crédit de bienvenue sur chaque nouveau compte.</p>
       </aside>
       <main className="mx-auto flex w-full max-w-lg flex-col gap-8 px-4 py-8">
-        <YoonMark className="md:hidden" />
+        <SenTrajetMark className="md:hidden" />
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl">Entrer dans Yoon</h1>
+          <h1 className="font-display text-4xl">Entrer dans Sen Trajet</h1>
           <p className="text-muted-foreground">Les deux comptes de démonstration ouvrent l’application sans inscription.</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">

@@ -116,7 +116,7 @@ export function CarpoolPublish() {
           </Field>
           {suggested ? (
             <p className="text-sm text-muted-foreground">
-              Suggestion {fcfa(suggested)}. Yoon accepte entre {fcfa(Math.round(suggested * 0.6))} et {fcfa(Math.round(suggested * 1.7))}.
+              Suggestion {fcfa(suggested)}. Sen Trajet accepte entre {fcfa(Math.round(suggested * 0.6))} et {fcfa(Math.round(suggested * 1.7))}.
             </p>
           ) : null}
           <Button size="xl" onClick={() => setStep(2)}>

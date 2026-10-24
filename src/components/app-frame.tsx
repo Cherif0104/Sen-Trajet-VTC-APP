@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Clock3Icon, HouseIcon, UserRoundIcon, UsersIcon } from "lucide-react"
-import { YoonMark } from "@/components/yoon-mark"
+import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { useMe } from "@/components/use-me"
 import { cn } from "cn"
@@ -25,7 +25,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh bg-muted md:grid md:grid-cols-[minmax(0,1fr)_28rem]">
       <aside className="hidden flex-col justify-between bg-accent px-10 py-12 text-accent-foreground md:flex">
         <div className="flex flex-col gap-8">
-          <YoonMark className="[&_svg]:text-accent-foreground" />
+          <SenTrajetMark className="[&_span]:text-accent-foreground [&_span_span]:text-accent-foreground/70" />
           <div className="flex max-w-md flex-col gap-4">
             <p className="font-display text-5xl leading-[1.05] text-balance">La route, sans négocier au feu.</p>
             <p className="text-base text-accent-foreground/80">
@@ -37,8 +37,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       </aside>
       <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-background md:max-w-none">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
-          <Link href="/app" aria-label="Accueil Yoon">
-            <YoonMark />
+          <Link href="/app" aria-label="Accueil Sen Trajet">
+            <SenTrajetMark />
           </Link>
           {me?.driver ? (
             <Link

@@ -51,7 +51,7 @@ function point(value: unknown, label: string): GeoPoint {
     throw new ApiError(`${label} est incomplet.`)
   }
   if (place.lat < 12 || place.lat > 17 || place.lng < -18 || place.lng > -11) {
-    throw new ApiError("Yoon couvre le Sénégal. Choisissez un point dans le pays.")
+    throw new ApiError("Sen Trajet couvre le Sénégal. Choisissez un point dans le pays.")
   }
   return {
     label: place.label.slice(0, 120),

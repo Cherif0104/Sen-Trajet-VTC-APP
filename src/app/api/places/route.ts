@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(2000),
         headers: {
-          "User-Agent": "Yoon/0.1 (preproduction; senegal)",
+          "User-Agent": "SenTrajet/0.1 (preproduction; senegal)",
           "Accept-Language": "fr",
         },
       })

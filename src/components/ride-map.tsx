@@ -22,22 +22,22 @@ function paint(
   group.clearLayers()
   const bounds: import("leaflet").LatLngExpression[] = []
   if (props.route && props.route.length > 1) {
-    L.polyline(props.route, { color: "#0E6E68", weight: 5, opacity: 0.9 }).addTo(group)
+    L.polyline(props.route, { color: "#D4AF37", weight: 5, opacity: 0.95 }).addTo(group)
     bounds.push(...props.route)
   }
   const dot = (point: Point, color: string, radius: number) => {
     L.circleMarker([point.lat, point.lng], {
       radius,
-      color: "#fff",
+      color: "#0B0B0C",
       weight: 2,
       fillColor: color,
       fillOpacity: 1,
     }).addTo(group)
     bounds.push([point.lat, point.lng])
   }
-  if (props.pickup) dot(props.pickup, "#0E6E68", 8)
-  if (props.dropoff) dot(props.dropoff, "#E23A12", 8)
-  if (props.driver) dot(props.driver, "#14211C", 7)
+  if (props.pickup) dot(props.pickup, "#D4AF37", 8)
+  if (props.dropoff) dot(props.dropoff, "#F6F1E4", 8)
+  if (props.driver) dot(props.driver, "#E0C36A", 7)
   if (fit && bounds.length > 0) {
     map.fitBounds(L.latLngBounds(bounds), { padding: [28, 28], maxZoom: 15 })
   }
@@ -56,7 +56,7 @@ export function RideMap(props: Props) {
       const L = await import("leaflet")
       if (dead || !node.current || mapRef.current) return
       const map = L.map(node.current, { zoomControl: false }).setView([14.72, -17.46], 12)
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         subdomains: "abcd",
         maxZoom: 20,
         attribution: "&copy; OpenStreetMap · CARTO",

@@ -22,7 +22,7 @@ export async function planRoute(pickup: LatLng, dropoff: LatLng): Promise<Planne
     const url = `https://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}?overview=full&geometries=geojson`
     const response = await fetch(url, {
       signal: AbortSignal.timeout(2500),
-      headers: { "User-Agent": "Yoon/0.1 (preproduction)" },
+      headers: { "User-Agent": "SenTrajet/0.1 (preproduction)" },
     })
     if (!response.ok) throw new Error("osrm")
     const json = (await response.json()) as {

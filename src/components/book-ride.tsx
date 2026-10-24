@@ -193,7 +193,7 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
               <span>
                 <span className="block font-medium">Trajet Serein</span>
-                <span className="block text-sm opacity-80">Conductrice uniquement. Sinon, Yoon le dit.</span>
+                <span className="block text-sm opacity-80">Conductrice uniquement. Sinon, Sen Trajet le dit.</span>
               </span>
               <Switch checked={serene} onCheckedChange={setSerene} aria-label="Trajet Serein" />
             </div>

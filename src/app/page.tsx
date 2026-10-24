@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { connection } from "next/server"
 import { ArrowRightIcon, ShieldCheckIcon, TimerIcon, WalletIcon } from "lucide-react"
-import { YoonMark } from "@/components/yoon-mark"
+import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { measureFallback, priceRoute } from "@/lib/domain"
 import { fcfa } from "@/lib/format"
@@ -60,7 +60,7 @@ function Marketing() {
     <div>
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <YoonMark />
+          <SenTrajetMark />
           <div className="flex items-center gap-2">
             <Link href="/connexion" className={buttonVariants({ variant: "ghost", size: "lg" })}>
               Connexion
@@ -82,7 +82,7 @@ function Marketing() {
               La route, sans négocier au feu.
             </h1>
             <p className="max-w-lg text-lg text-muted-foreground">
-              Yoon relie une course immédiate et un siège réservé. Le prix en francs CFA est verrouillé avant le départ.
+              Sen Trajet relie une course immédiate et un siège réservé. Le prix en francs CFA est verrouillé avant le départ.
               Le chauffeur voit ce qu’il garde. Personne ne valide la course à la main.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -133,7 +133,7 @@ function Marketing() {
               {[
                 ["Le trajet", "Départ, arrivée, et le prix de chaque véhicule."],
                 ["Le véhicule", "Éco pour le quotidien, 7 places pour l’aéroport, Trajet Serein si vous le demandez."],
-                ["Le paiement", "Wave, Orange Money, Free Money, portefeuille Yoon ou espèces. Puis le suivi sur la carte."],
+                ["Le paiement", "Wave, Orange Money, Free Money, portefeuille Sen Trajet ou espèces. Puis le suivi sur la carte."],
               ].map(([title, body], index) => (
                 <li key={title} className="flex flex-col gap-2 rounded-2xl bg-background p-5">
                   <span className="font-display text-3xl text-primary">{index + 1}</span>
@@ -166,13 +166,13 @@ function Marketing() {
 
         <section className="mx-auto grid max-w-6xl gap-8 px-4 pb-16 md:grid-cols-2">
           <div className="flex flex-col gap-4">
-            <h2 className="font-display text-4xl">12 % pour Yoon. Le reste pour la route.</h2>
+            <h2 className="font-display text-4xl">12 % pour Sen Trajet. Le reste pour la route.</h2>
             <p className="text-muted-foreground">
               12 % sur Éco, Confort et 7 places. 10 % sur le Jakarta et le covoiturage. La commission est écrite avant
               d’accepter. Une plaque au format sénégalais et un mobile +221 suffisent pour être vérifié et passer en ligne.
             </p>
             <p className="text-muted-foreground">
-              Trajet Serein : vous demandez une conductrice. S’il n’y en a pas à proximité, Yoon le dit. On ne vous envoie
+              Trajet Serein : vous demandez une conductrice. S’il n’y en a pas à proximité, Sen Trajet le dit. On ne vous envoie
               pas quelqu’un d’autre en silence.
             </p>
           </div>
@@ -181,7 +181,7 @@ function Marketing() {
             <h2 className="font-display text-3xl">L’argent local, sans caisse manuelle.</h2>
             <p>
               Wave, Orange Money et Free Money se confirment automatiquement. En pré-production, aucun débit réel :
-              le même parcours branchera le webhook marchand. Les espèces restent possibles. Le portefeuille Yoon sert
+              le même parcours branchera le webhook marchand. Les espèces restent possibles. Le portefeuille Sen Trajet sert
               aux courses, aux sièges et aux remboursements.
             </p>
             <p className="text-sm">
@@ -194,7 +194,7 @@ function Marketing() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Yoon · sama yoon · Dakar, heure du Sénégal</p>
+          <p>Sen Trajet · Sénégal · Dakar, heure du Sénégal</p>
           <Link href="/connexion" className="text-foreground underline-offset-4 hover:underline">
             Essayer avec un compte de démonstration
           </Link>

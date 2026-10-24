@@ -15,22 +15,22 @@ const display = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Yoon — courses et covoiturage au Sénégal",
-    template: "%s · Yoon",
+    default: "Sen Trajet — courses et covoiturage au Sénégal",
+    template: "%s · Sen Trajet",
   },
   description:
     "Courses immédiates à Dakar et sièges réservés vers Thiès, Mbour, Touba et Saint-Louis. Le prix est fixé avant de monter.",
-  applicationName: "Yoon",
+  applicationName: "Sen Trajet",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Yoon",
-    statusBarStyle: "default",
+    title: "Sen Trajet",
+    statusBarStyle: "black-translucent",
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0E6E68",
+  themeColor: "#0B0B0C",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
