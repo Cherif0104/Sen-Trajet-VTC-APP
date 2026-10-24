@@ -22,20 +22,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   if (focus) return <div className="min-h-dvh bg-background">{children}</div>
 
   return (
-    <div className="min-h-dvh bg-muted md:grid md:grid-cols-[minmax(0,1fr)_28rem]">
-      <aside className="hidden flex-col justify-between border-r border-border bg-background px-10 py-12 text-foreground md:flex">
-        <div className="flex flex-col gap-8">
-          <SenTrajetMark />
-          <div className="flex max-w-md flex-col gap-4">
-            <p className="font-display text-5xl leading-[1.05] text-balance">La route, sans négocier au feu.</p>
-            <p className="text-base text-muted-foreground">
-              Courses immédiates à Dakar. Sièges réservés vers Thiès, Mbour, Touba et Saint-Louis. Le prix est fixé avant de monter.
-            </p>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground">Heure de Dakar · francs CFA · Wave, Orange Money, Free Money, espèces</p>
-      </aside>
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-background md:max-w-none">
+    <div className="min-h-dvh bg-background">
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
           <Link href="/app" aria-label="Accueil Sen Trajet">
             <SenTrajetMark />
@@ -49,8 +37,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             </Link>
           ) : null}
         </header>
-        <div className="flex flex-1 flex-col pb-24">{children}</div>
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur md:absolute">
+        <div className="flex flex-1 flex-col">{children}</div>
+        <nav className="sticky bottom-0 z-30 mt-auto border-t border-border bg-background/95 backdrop-blur">
           <ul className="mx-auto grid max-w-lg grid-cols-4">
             {links.map((link) => {
               const active = link.href === "/app" ? pathname === "/app" : pathname.startsWith(link.href)

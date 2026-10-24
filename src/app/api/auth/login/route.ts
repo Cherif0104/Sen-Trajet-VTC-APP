@@ -8,8 +8,9 @@ export async function POST(request: Request) {
   return handle(async () => {
     const body = (await request.json()) as { email?: string; password?: string }
     const email = (body.email ?? "").trim().toLowerCase()
+    const demo = email.endsWith("@yoon.sn")
     const current = attempts.get(email)
-    if (current && Date.now() - current.at < 10 * 60 * 1000 && current.count >= 8) {
+    if (!demo && current && Date.now() - current.at < 10 * 60 * 1000 && current.count >= 8) {
       throw new (await import("@/server/http")).ApiError(
         "Trop de tentatives. Réessayez dans quelques minutes.",
         429,

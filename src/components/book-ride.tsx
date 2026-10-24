@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { DemoNote } from "@/components/demo-indicator"
@@ -40,11 +40,13 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
   const [serene, setSerene] = useState(false)
   const [method, setMethod] = useState<PayMethod>("wave")
   const [busy, setBusy] = useState(false)
+  const pickupEdited = useRef(Boolean(fromId))
 
   useEffect(() => {
-    if (fromId) return
+    if (fromId || pickupEdited.current) return
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition((position) => {
+      if (pickupEdited.current) return
       const { latitude, longitude } = position.coords
       if (latitude < 12 || latitude > 17 || longitude < -18 || longitude > -11) return
       setPickup({ label: "Ma position", city: "Dakar", lat: latitude, lng: longitude })
@@ -137,7 +139,19 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
 
         {step === 0 ? (
           <div className="flex flex-col gap-4">
-            <PlaceField label="Départ" value={pickup} onChange={setPickup} onClear={() => setPickup(null)} placeholder="Sacré-Cœur, Plateau…" />
+            <PlaceField
+              label="Départ"
+              value={pickup}
+              onChange={(place) => {
+                pickupEdited.current = true
+                setPickup(place)
+              }}
+              onClear={() => {
+                pickupEdited.current = true
+                setPickup(null)
+              }}
+              placeholder="Sacré-Cœur, Plateau…"
+            />
             <PlaceField label="Arrivée" value={dropoff} onChange={setDropoff} onClear={() => setDropoff(null)} placeholder="Almadies, AIBD, Thiès…" />
             <div className="flex gap-2 overflow-x-auto">
               {POPULAR_IDS.slice(0, 6).map((id) => {

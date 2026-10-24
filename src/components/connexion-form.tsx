@@ -4,12 +4,12 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
+import { SimAccounts } from "@/components/sim-accounts"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/client"
-import { DEMO_ACCOUNTS } from "@/lib/demo"
 
 export function ConnexionForm({ next }: { next: string }) {
   const router = useRouter()
@@ -30,40 +30,14 @@ export function ConnexionForm({ next }: { next: string }) {
   }
 
   return (
-    <div className="grid min-h-dvh md:grid-cols-[minmax(0,1fr)_28rem]">
-      <aside className="hidden flex-col justify-between border-r border-border bg-background px-10 py-12 text-foreground md:flex">
+    <div className="min-h-dvh bg-background">
+      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-5 py-8">
         <SenTrajetMark />
-        <div className="flex max-w-md flex-col gap-4">
-          <p className="font-display text-5xl leading-[1.05]">Sen Trajet.</p>
-          <p className="text-muted-foreground">
-            Un compte pour demander une course, réserver un siège, ou publier un départ.
-          </p>
-        </div>
-        <p className="text-sm text-muted-foreground">15 000 F de crédit de bienvenue sur chaque nouveau compte.</p>
-      </aside>
-      <main className="mx-auto flex w-full max-w-lg flex-col gap-8 px-4 py-8">
-        <SenTrajetMark className="md:hidden" />
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-4xl">Entrer dans Sen Trajet</h1>
-          <p className="text-muted-foreground">
-            Les deux comptes ci-dessous sont fictifs. Ils servent à montrer Sen Trajet, pas à transporter quelqu’un.
-          </p>
+          <p className="text-muted-foreground">Un profil fictif ouvre sa session. Le formulaire sert pour un autre compte.</p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {([DEMO_ACCOUNTS.rider, DEMO_ACCOUNTS.driver] as const).map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              disabled={busy}
-              className="flex flex-col items-start gap-1 rounded-2xl border border-border bg-card px-4 py-4 text-left hover:bg-muted disabled:opacity-50"
-              onClick={() => enter("/api/auth/login", { email: account.email, password: account.password })}
-            >
-              <span className="text-xs tracking-wide text-muted-foreground uppercase">{account.role}</span>
-              <span className="font-medium">{account.name}</span>
-              <span className="text-sm text-muted-foreground">{account.email}</span>
-            </button>
-          ))}
-        </div>
+        <SimAccounts next={destination} />
         <Tabs defaultValue="login">
           <TabsList className="w-full">
             <TabsTrigger value="login">Connexion</TabsTrigger>

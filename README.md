@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-L’application écoute sur [http://127.0.0.1:43123](http://127.0.0.1:43123).
+L’application écoute sur [http://127.0.0.1:43123](http://127.0.0.1:43123). L’ouverture est un écran d’application : bienvenue, une étape, puis les profils fictifs. Un appui ouvre la session de ce profil.
 
 Comptes de démonstration, mot de passe `Yoon2026!` :
 
