@@ -95,7 +95,7 @@ export default function DriverPage() {
 
       <div className="rounded-3xl border border-border bg-card px-5 py-4">
         <p className="text-sm text-muted-foreground">Net du jour, heure de Dakar</p>
-        <p className="font-display text-4xl tabular-nums text-primary">{fcfa(desk.earningsToday)}</p>
+        <p className="font-display text-4xl tabular-nums">{fcfa(desk.earningsToday)}</p>
         <p className="mt-2 text-sm text-muted-foreground">
           Journal interne. Une course Wave de démonstration n’est pas un encaissement réel.
         </p>

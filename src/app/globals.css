@@ -9,8 +9,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-bricolage);
   --font-mono: ui-monospace, monospace;
-  --font-heading: var(--font-fraunces);
-  --font-display: var(--font-fraunces);
+  --font-heading: var(--font-bricolage);
+  --font-display: var(--font-bricolage);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -52,40 +52,40 @@
 }
 
 :root {
-  --background: #0b0b0c;
-  --foreground: #f6f1e4;
-  --card: #141413;
-  --card-foreground: #f6f1e4;
-  --popover: #181816;
-  --popover-foreground: #f6f1e4;
-  --primary: #d4af37;
-  --primary-foreground: #14110a;
-  --secondary: #3a3224;
-  --secondary-foreground: #f3e6c4;
-  --muted: #1a1916;
-  --muted-foreground: #c4b89a;
-  --accent: #d4af37;
-  --accent-foreground: #14110a;
-  --destructive: #e15b4a;
-  --border: #3a3428;
-  --input: #3a3428;
-  --ring: #e0c36a;
-  --brand: #d4af37;
-  --brand-foreground: #14110a;
-  --chart-1: #d4af37;
-  --chart-2: #f6f1e4;
-  --chart-3: #8a7340;
-  --chart-4: #3a3428;
-  --chart-5: #1a1916;
+  --background: #ffffff;
+  --foreground: #121417;
+  --card: #ffffff;
+  --card-foreground: #121417;
+  --popover: #ffffff;
+  --popover-foreground: #121417;
+  --primary: #ff4d2a;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #121417;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #0e8c78;
+  --accent-foreground: #ffffff;
+  --destructive: #e11d2e;
+  --border: #e6e8ec;
+  --input: #e6e8ec;
+  --ring: #ff4d2a;
+  --brand: #ff4d2a;
+  --brand-foreground: #ffffff;
+  --chart-1: #ff4d2a;
+  --chart-2: #0e8c78;
+  --chart-3: #121417;
+  --chart-4: #e6e8ec;
+  --chart-5: #f3f4f6;
   --radius: 1rem;
-  --sidebar: #141413;
-  --sidebar-foreground: #f6f1e4;
-  --sidebar-primary: #d4af37;
-  --sidebar-primary-foreground: #14110a;
-  --sidebar-accent: #221f18;
-  --sidebar-accent-foreground: #f3e6c4;
-  --sidebar-border: #3a3428;
-  --sidebar-ring: #e0c36a;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #121417;
+  --sidebar-primary: #ff4d2a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #121417;
+  --sidebar-border: #e6e8ec;
+  --sidebar-ring: #ff4d2a;
 }
 
 .dark {
@@ -128,17 +128,21 @@
   }
   html {
     @apply font-sans;
-    color-scheme: dark;
+    color-scheme: light;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  .font-display {
+    font-weight: 700;
+    letter-spacing: -0.035em;
   }
 }
 
 .leaflet-container {
   height: 100%;
   width: 100%;
-  background: #0b0b0c;
+  background: #e7eef2;
   font-family: inherit;
 }
 

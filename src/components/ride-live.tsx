@@ -108,31 +108,60 @@ export function RideLive({ id }: { id: string }) {
       ? Math.max(0, 50 - Math.floor((now - new Date(ride.arrivedAt).getTime()) / 1000))
       : null
   const scored = ride.viewer === "rider" ? ride.driverScore : ride.riderScore
+  const mins = ride.etaS != null ? formatMinutes(ride.etaS) : null
+  const driverFirst = ride.driver?.name.split(" ")[0]
+  const riderFirst = ride.rider.name.split(" ")[0]
   const headline =
-    ride.status === "matching"
-      ? "Recherche d’un chauffeur libre."
-      : ride.status === "accepted"
-        ? `En approche${ride.etaS != null ? ` · ${formatMinutes(ride.etaS)}` : ""}`
+    ride.viewer === "driver"
+      ? ride.status === "accepted"
+        ? `Vers ${riderFirst}`
         : ride.status === "arrived"
-          ? "Votre chauffeur est au point."
+          ? "Vous êtes au point."
           : ride.status === "in_progress"
-            ? `Vers ${ride.dropoff.label}${ride.etaS != null ? ` · ${formatMinutes(ride.etaS)}` : ""}`
+            ? `Vers ${ride.dropoff.label}`
             : ride.status === "cancelled"
-              ? ride.cancelReason ?? "Course annulée."
-              : "Course terminée."
+              ? "Course annulée."
+              : ride.status === "completed"
+                ? "Course terminée."
+                : "Recherche d’un passager."
+      : ride.status === "matching"
+        ? "Recherche d’un chauffeur."
+        : ride.status === "accepted"
+          ? `${driverFirst ?? "Votre chauffeur"} arrive${mins ? ` dans ${mins}` : ""}`
+          : ride.status === "arrived"
+            ? `${driverFirst ?? "Votre chauffeur"} est au point.`
+            : ride.status === "in_progress"
+              ? `Vers ${ride.dropoff.label}`
+              : ride.status === "cancelled"
+                ? "Course annulée."
+                : "Course terminée."
+  const terminal = ride.status === "completed" || ride.status === "cancelled"
 
   return (
-    <div className="flex min-h-dvh flex-col md:grid md:grid-cols-[minmax(0,1fr)_28rem]">
-      <div className="relative h-[46vh] md:h-dvh">
-        <RideMap pickup={ride.pickup} dropoff={ride.dropoff} driver={ride.driverPoint} route={ride.route} />
-      </div>
-      <div className="flex flex-1 flex-col gap-4 bg-background px-4 py-4 md:h-dvh md:overflow-y-auto">
+    <div className={cn("relative min-h-dvh", terminal && "bg-white")}>
+      {terminal ? null : (
+        <div className="absolute inset-0 z-0">
+          <RideMap pickup={ride.pickup} dropoff={ride.dropoff} driver={ride.driverPoint} route={ride.route} />
+        </div>
+      )}
+      <div
+        className={cn(
+          "z-20 flex flex-col gap-4 bg-white px-4",
+          terminal
+            ? "mx-auto min-h-dvh w-full max-w-lg py-6"
+            : "absolute inset-x-0 bottom-0 max-h-[74vh] overflow-y-auto rounded-t-[1.75rem] pt-3 pb-6 shadow-[0_-12px_40px_rgba(18,20,23,0.08)]",
+        )}
+      >
+        {terminal ? null : <div className="mx-auto h-1 w-10 rounded-full bg-border" />}
         <FocusBar title={rideStatusLabel(ride.status)} back={ride.viewer === "driver" ? "/app/chauffeur" : "/app"} />
         <div className="flex flex-col gap-2">
           <p className="font-display text-3xl text-balance">{headline}</p>
           <p className="text-sm text-muted-foreground">
-            {ride.pickup.label} → {ride.dropoff.label}
+            {ride.status === "in_progress" && mins
+              ? `${mins} · prix fixé`
+              : `${ride.pickup.label} → ${ride.dropoff.label}`}
           </p>
+          {active ? <p className="font-display text-4xl tabular-nums">{fcfa(ride.fare)}</p> : null}
           {active ? <Progress value={Math.round(ride.progress * 100)} /> : null}
         </div>
 
@@ -150,7 +179,13 @@ export function RideLive({ id }: { id: string }) {
               <DemoNote>Ce chauffeur fait partie de la flotte de démonstration. Ce n’est pas un chauffeur en service.</DemoNote>
             ) : null}
             {ride.driver.phone ? (
-              <a href={`tel:${ride.driver.phone}`} className={buttonVariants({ variant: "outline", size: "lg" })}>
+              <a
+                href={`tel:${ride.driver.phone}`}
+                className={buttonVariants({
+                  variant: ride.viewer === "rider" && ride.status === "accepted" ? "default" : "outline",
+                  size: ride.viewer === "rider" && ride.status === "accepted" ? "xl" : "lg",
+                })}
+              >
                 <PhoneIcon data-icon="inline-start" />
                 Appeler
               </a>
@@ -176,7 +211,7 @@ export function RideLive({ id }: { id: string }) {
         ) : null}
 
         <div className="flex flex-col gap-2">
-          {ride.viewer === "rider" && (ride.status === "arrived" || ride.status === "accepted") ? (
+          {ride.viewer === "rider" && ride.status === "arrived" ? (
             <Button size="xl" disabled={busy} onClick={() => void act("start")}>
               Je monte
             </Button>

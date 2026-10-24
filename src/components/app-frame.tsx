@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Clock3Icon, HouseIcon, UserRoundIcon, UsersIcon } from "lucide-react"
+import { ArmchairIcon, CarIcon, HouseIcon, UserRoundIcon } from "lucide-react"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { useMe } from "@/components/use-me"
@@ -10,21 +10,27 @@ import { cn } from "cn"
 
 const links = [
   { href: "/app", label: "Accueil", icon: HouseIcon },
-  { href: "/app/covoiturage", label: "Sièges", icon: UsersIcon },
-  { href: "/app/activite", label: "Activité", icon: Clock3Icon },
+  { href: "/app/activite", label: "Courses", icon: CarIcon },
+  { href: "/app/covoiturage", label: "Sièges", icon: ArmchairIcon },
   { href: "/app/compte", label: "Compte", icon: UserRoundIcon },
 ]
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const focus = pathname.startsWith("/app/course")
+  const mapHome = pathname === "/app"
   const { me } = useMe()
   if (focus) return <div className="min-h-dvh bg-background">{children}</div>
 
   return (
     <div className="min-h-dvh bg-background">
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+      <div className={cn("relative mx-auto flex min-h-dvh w-full max-w-lg flex-col", mapHome && "h-dvh")}>
+        <header
+          className={cn(
+            "sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur",
+            mapHome && "hidden",
+          )}
+        >
           <Link href="/app" aria-label="Accueil Sen Trajet">
             <SenTrajetMark />
           </Link>
@@ -37,7 +43,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             </Link>
           ) : null}
         </header>
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className={cn("flex flex-1 flex-col", mapHome && "relative min-h-0")}>{children}</div>
         <nav className="sticky bottom-0 z-30 mt-auto border-t border-border bg-background/95 backdrop-blur">
           <ul className="mx-auto grid max-w-lg grid-cols-4">
             {links.map((link) => {

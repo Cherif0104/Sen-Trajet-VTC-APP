@@ -1,16 +1,11 @@
 import type { Metadata, Viewport } from "next"
-import { Bricolage_Grotesque, Fraunces } from "next/font/google"
+import { Bricolage_Grotesque } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 const sans = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
-})
-
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
 })
 
 export const metadata: Metadata = {
@@ -25,12 +20,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Sen Trajet",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0B0B0C",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -38,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${sans.variable} ${display.variable} h-full antialiased`}>
+    <html lang="fr" className={`${sans.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
         <Toaster position="top-center" />

@@ -34,8 +34,8 @@ export function ConnexionForm({ next }: { next: string }) {
       <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-5 py-8">
         <SenTrajetMark />
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl">Entrer dans Sen Trajet</h1>
-          <p className="text-muted-foreground">Un profil fictif ouvre sa session. Le formulaire sert pour un autre compte.</p>
+          <h1 className="font-display text-4xl">Connexion</h1>
+          <p className="text-muted-foreground">Awa ou Moussa ouvrent une session. Le formulaire sert pour un autre compte.</p>
         </div>
         <SimAccounts next={destination} />
         <Tabs defaultValue="login">

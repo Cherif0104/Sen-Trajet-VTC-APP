@@ -94,7 +94,7 @@ export function CarpoolDetail({ id }: { id: string }) {
             {trip.driver.rating.toFixed(1).replace(".", ",")} ({trip.driver.ratingCount})
           </p>
           <div className="mt-2 flex flex-wrap gap-1">
-            {trip.serene ? <Badge>Serein</Badge> : null}
+            {trip.serene ? <Badge className="bg-accent text-accent-foreground">Serein</Badge> : null}
             {trip.amenities.map((item) => (
               <Badge key={item} variant="outline">
                 {AMENITY_LABELS[item] ?? item}

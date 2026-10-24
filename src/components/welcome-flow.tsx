@@ -14,8 +14,8 @@ export function WelcomeFlow() {
     <div className="min-h-dvh bg-background">
       <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 py-8">
         <SenTrajetMark />
-        <p className="mt-8 text-xs tracking-[0.18em] text-primary uppercase">
-          {step + 1} / {steps.length} · {steps[step]}
+        <p className="mt-8 text-sm text-muted-foreground">
+          {step + 1} / {steps.length}
         </p>
 
         {step === 0 ? (

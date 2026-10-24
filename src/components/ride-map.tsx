@@ -22,24 +22,29 @@ function paint(
   group.clearLayers()
   const bounds: import("leaflet").LatLngExpression[] = []
   if (props.route && props.route.length > 1) {
-    L.polyline(props.route, { color: "#D4AF37", weight: 5, opacity: 0.95 }).addTo(group)
+    L.polyline(props.route, { color: "#0E8C78", weight: 5, opacity: 0.95 }).addTo(group)
     bounds.push(...props.route)
   }
   const dot = (point: Point, color: string, radius: number) => {
     L.circleMarker([point.lat, point.lng], {
       radius,
-      color: "#0B0B0C",
-      weight: 2,
+      color: "#FFFFFF",
+      weight: 3,
       fillColor: color,
       fillOpacity: 1,
     }).addTo(group)
     bounds.push([point.lat, point.lng])
   }
-  if (props.pickup) dot(props.pickup, "#D4AF37", 8)
-  if (props.dropoff) dot(props.dropoff, "#F6F1E4", 8)
-  if (props.driver) dot(props.driver, "#E0C36A", 7)
+  if (props.pickup) dot(props.pickup, "#FF4D2A", 8)
+  if (props.dropoff) dot(props.dropoff, "#121417", 8)
+  if (props.driver) dot(props.driver, "#FF4D2A", 7)
   if (fit && bounds.length > 0) {
-    map.fitBounds(L.latLngBounds(bounds), { padding: [28, 28], maxZoom: 15 })
+    const single = !props.dropoff && !(props.route && props.route.length > 1)
+    map.fitBounds(L.latLngBounds(bounds), {
+      paddingTopLeft: [32, 72],
+      paddingBottomRight: [32, single ? 300 : 80],
+      maxZoom: single ? 13 : 15,
+    })
   }
 }
 
@@ -57,15 +62,11 @@ export function RideMap(props: Props) {
       if (dead || !node.current || mapRef.current) return
       const map = L.map(node.current, { zoomControl: false }).setView([14.72, -17.46], 12)
       L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
         {
-          maxZoom: 16,
+          maxZoom: 18,
           attribution: "Carte &copy; Esri",
         },
-      ).addTo(map)
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-        { maxZoom: 16 },
       ).addTo(map)
       const group = L.layerGroup().addTo(map)
       mapRef.current = map

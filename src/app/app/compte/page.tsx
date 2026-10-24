@@ -124,11 +124,11 @@ export default function AccountPage() {
         </p>
       </div>
 
-      <section className="flex flex-col gap-3 rounded-3xl bg-card px-4 py-4">
+      <section className="flex flex-col gap-3 rounded-3xl border border-border bg-card px-4 py-4">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Portefeuille Sen Trajet</p>
-            <p className="font-display text-4xl">{fcfa(me.balance)}</p>
+            <p className="font-display text-5xl tabular-nums">{fcfa(me.balance)}</p>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">

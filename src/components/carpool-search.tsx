@@ -100,7 +100,7 @@ export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: 
         <ul className="flex flex-col gap-3">
           {trips.map((trip) => (
             <li key={trip.id}>
-              <Link href={`/app/covoiturage/${trip.id}`} className="flex flex-col gap-2 rounded-3xl bg-card px-4 py-4">
+              <Link href={`/app/covoiturage/${trip.id}`} className="flex flex-col gap-2 rounded-3xl border border-border bg-card px-4 py-4">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium">
                     {formatTime(trip.departAt)} · {trip.origin.city} → {trip.destination.city}
@@ -111,7 +111,7 @@ export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: 
                   {trip.driver.name} · {trip.driver.color} {trip.driver.make} {trip.driver.model} · {seatsLabel(trip.seatsLeft)} libres
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {trip.serene ? <Badge variant="secondary">Serein</Badge> : null}
+                  {trip.serene ? <Badge className="bg-accent text-accent-foreground">Serein</Badge> : null}
                   <FleetBadge launchFleet={trip.driver.launchFleet} />
                   {trip.amenities.slice(0, 3).map((item) => (
                     <Badge key={item} variant="outline">

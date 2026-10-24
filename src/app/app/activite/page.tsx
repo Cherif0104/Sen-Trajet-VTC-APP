@@ -52,7 +52,7 @@ export default function ActivityPage() {
       {upcoming.length > 0 ? (
         <Section title="Sièges à venir">
           {upcoming.map((item) => (
-            <Link key={item.id} href={`/app/covoiturage/${item.carpoolId}`} className="flex flex-col rounded-2xl bg-card px-4 py-3">
+            <Link key={item.id} href={`/app/covoiturage/${item.carpoolId}`} className="flex flex-col rounded-2xl border border-border bg-card px-4 py-3">
               <span className="font-medium">
                 {item.origin} → {item.destination}
               </span>
@@ -67,7 +67,7 @@ export default function ActivityPage() {
       {data.rides.length > 0 ? (
         <Section title="Courses">
           {data.rides.map((ride) => (
-            <Link key={ride.id} href={`/app/course/${ride.id}`} className="flex items-center justify-between rounded-2xl bg-card px-4 py-3">
+            <Link key={ride.id} href={`/app/course/${ride.id}`} className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3">
               <span>
                 <span className="block font-medium">
                   {ride.pickup.label} → {ride.dropoff.label}

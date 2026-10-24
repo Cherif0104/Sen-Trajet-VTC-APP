@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { BikeIcon, BusIcon, CarFrontIcon, CarIcon } from "lucide-react"
 import { toast } from "sonner"
 import { DemoNote } from "@/components/demo-indicator"
 import { FareCard } from "@/components/fare-card"
@@ -113,7 +114,7 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
       <div className="absolute top-3 left-3 z-30 rounded-full bg-background/95 pr-3 backdrop-blur md:hidden">
         <FocusBar title="Course" />
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[72vh] flex-col gap-4 overflow-y-auto rounded-t-[1.75rem] border border-border bg-background px-4 pt-3 pb-6 md:relative md:inset-auto md:z-auto md:max-h-none md:h-dvh md:rounded-none md:border-y-0 md:border-r-0">
+      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[72vh] flex-col gap-4 overflow-y-auto rounded-t-[1.75rem] bg-white px-4 pt-3 pb-6 shadow-[0_-12px_40px_rgba(18,20,23,0.08)] md:relative md:inset-auto md:z-auto md:max-h-none md:h-dvh md:rounded-none md:shadow-none">
         <div className="mx-auto h-1 w-10 rounded-full bg-border md:hidden" />
         <div className="hidden md:block">
           <FocusBar title="Course" />
@@ -188,32 +189,47 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
                 <Skeleton className="h-20 w-full rounded-2xl" />
               </div>
             ) : (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {shownQuotes.map((quote) => (
-                  <button
-                    key={quote.category}
-                    type="button"
-                    disabled={!quote.available}
-                    onClick={() => setCategory(quote.category)}
-                    className={cn(
-                      "flex w-36 shrink-0 flex-col gap-1 rounded-2xl border bg-card px-3 py-3 text-left",
-                      category === quote.category ? "border-primary" : "border-border",
-                      !quote.available && "opacity-60",
-                    )}
-                  >
-                    <span className="text-sm font-medium">{quote.label}</span>
-                    <span className="font-display text-2xl tabular-nums text-primary">
-                      {quote.fare ? fcfa(quote.fare) : "—"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {quote.available
-                        ? quote.etaPickupS
-                          ? formatMinutes(quote.etaPickupS)
-                          : quote.detail
-                        : quote.reason}
-                    </span>
-                  </button>
-                ))}
+              <div className="flex flex-col gap-2">
+                {shownQuotes.map((quote) => {
+                  const Icon =
+                    quote.category === "jakarta" ? BikeIcon : quote.category === "van" ? BusIcon : quote.category === "confort" ? CarFrontIcon : CarIcon
+                  return (
+                    <button
+                      key={quote.category}
+                      type="button"
+                      disabled={!quote.available}
+                      onClick={() => setCategory(quote.category)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl border px-3 py-3 text-left",
+                        category === quote.category ? "border-primary bg-primary/5" : "border-border bg-white",
+                        !quote.available && "opacity-60",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-10 shrink-0 items-center justify-center rounded-full",
+                          category === quote.category ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground",
+                        )}
+                      >
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium">{quote.label}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {quote.available ? quote.detail : quote.reason}
+                        </span>
+                      </span>
+                      <span className="text-right">
+                        <span className="block text-lg font-semibold tabular-nums">
+                          {quote.fare ? fcfa(quote.fare) : "—"}
+                        </span>
+                        {quote.available && quote.etaPickupS ? (
+                          <span className="block text-xs text-muted-foreground">{formatMinutes(quote.etaPickupS)}</span>
+                        ) : null}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             )}
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
@@ -228,7 +244,7 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
             ) : null}
             {selected?.surgeLabel ? <p className="text-sm text-muted-foreground">{selected.surgeLabel}</p> : null}
             <Button size="xl" disabled={!selected?.available || sereneBlocked} onClick={() => setStep(2)}>
-              Continuer
+              {selected ? `Choisir ${selected.label}` : "Continuer"}
             </Button>
           </div>
         ) : null}
