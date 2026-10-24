@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { PhoneIcon, Share2Icon, SirenIcon } from "lucide-react"
 import { toast } from "sonner"
-import { DemoNote, FleetBadge } from "@/components/demo-indicator"
 import { FocusBar } from "@/components/focus-bar"
 import { RideMap } from "@/components/ride-map"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -125,7 +124,7 @@ export function RideLive({ id }: { id: string }) {
                 ? "Course terminée."
                 : "Recherche d’un passager."
       : ride.status === "matching"
-        ? "Recherche d’un chauffeur."
+        ? "On cherche un chauffeur."
         : ride.status === "accepted"
           ? `${driverFirst ?? "Votre chauffeur"} arrive${mins ? ` dans ${mins}` : ""}`
           : ride.status === "arrived"
@@ -167,17 +166,11 @@ export function RideLive({ id }: { id: string }) {
 
         {ride.driver ? (
           <div className="flex flex-col gap-2 rounded-3xl bg-card px-4 py-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-medium">{ride.driver.name}</p>
-              <FleetBadge launchFleet={ride.driver.launchFleet} />
-            </div>
+            <p className="font-medium">{ride.driver.name}</p>
             <p className="text-sm text-muted-foreground">
               {ride.driver.color} {ride.driver.make} {ride.driver.model} · {ride.driver.plate} · {ride.driver.rating.toFixed(1).replace(".", ",")}
             </p>
             {ride.driver.serene || ride.serene ? <p className="text-sm text-accent">Trajet Serein</p> : null}
-            {ride.driver.launchFleet ? (
-              <DemoNote>Ce chauffeur fait partie de la flotte de démonstration. Ce n’est pas un chauffeur en service.</DemoNote>
-            ) : null}
             {ride.driver.phone ? (
               <a
                 href={`tel:${ride.driver.phone}`}
@@ -192,9 +185,7 @@ export function RideLive({ id }: { id: string }) {
             ) : null}
           </div>
         ) : ride.status === "matching" ? (
-          <p className="text-sm text-muted-foreground">
-            Un chauffeur indépendant en ligne et proche passe devant. Sinon, une flotte de démonstration accepte la course pour que le parcours puisse se terminer.
-          </p>
+          <p className="text-sm text-muted-foreground">On cherche. Personne n’est inventé.</p>
         ) : null}
 
         {ride.viewer === "driver" && ride.rider.phone ? (

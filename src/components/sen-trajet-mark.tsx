@@ -4,15 +4,15 @@ export function SenTrajetMark({ className, word = true }: { className?: string; 
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <svg viewBox="0 0 32 32" className="size-8 shrink-0" aria-hidden>
-        <rect width="32" height="32" rx="9" fill="#FF4D2A" />
+        <rect width="32" height="32" rx="9" fill="#121417" />
         <path
-          d="M8 22.5c3.6-6.4 5.4-9.6 8-9.6s4.4 3.2 8 9.6"
+          d="M7 22.5c3.2 0 4.2-10 8-10s4.8 10 9 10"
           fill="none"
-          stroke="#FFFFFF"
-          strokeWidth="2.2"
+          stroke="#0E8C78"
+          strokeWidth="2.4"
           strokeLinecap="round"
         />
-        <circle cx="16" cy="12.6" r="2" fill="#FFFFFF" />
+        <circle cx="24" cy="22.5" r="2.3" fill="#FF4D2A" />
       </svg>
       {word ? (
         <span className="text-lg leading-none font-semibold tracking-tight">

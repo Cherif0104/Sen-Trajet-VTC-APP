@@ -9,8 +9,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/client"
-import { CATEGORIES, CATEGORY_ORDER, type CategoryId, type PayMethod } from "@/lib/domain"
-import { DEMO_ACCOUNTS } from "@/lib/demo"
+import { CATEGORIES, RIDE_CLASSES, type CategoryId } from "@/lib/domain"
 import type { MeDTO } from "@/lib/dto"
 import { fcfa, formatWhen, txLabel } from "@/lib/format"
 import Link from "next/link"
@@ -41,24 +40,6 @@ export default function AccountPage() {
     }
   }
 
-  async function topup(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    setBusy(true)
-    try {
-      await api<MeDTO>("/api/wallet", {
-        method: "POST",
-        body: JSON.stringify({ amount: Number(data.get("amount")), method: data.get("method") }),
-      })
-      toast.success("Portefeuille rechargé. Aucun débit réel en pré-production.")
-      await reload()
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Recharge impossible.")
-    } finally {
-      setBusy(false)
-    }
-  }
-
   async function become(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
@@ -75,7 +56,7 @@ export default function AccountPage() {
           serene: data.get("serene") === "on",
         }),
       })
-      toast.success("Véhicule vérifié. Vous pouvez passer en ligne.")
+      toast.success("Dossier envoyé. On te prévient.")
       await reload()
     } catch (caught) {
       toast.error(caught instanceof Error ? caught.message : "Vérification impossible.")
@@ -90,21 +71,6 @@ export default function AccountPage() {
     router.refresh()
   }
 
-  async function enterDemo(email: string) {
-    setBusy(true)
-    try {
-      await api("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password: DEMO_ACCOUNTS.rider.password }),
-      })
-      router.replace("/app")
-      router.refresh()
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Changement de compte impossible.")
-      setBusy(false)
-    }
-  }
-
   async function markRead() {
     await api("/api/me", { method: "DELETE" })
     await reload()
@@ -112,8 +78,6 @@ export default function AccountPage() {
 
   if (loading) return <p className="px-4 py-8 text-muted-foreground">Chargement du compte…</p>
   if (!me) return <p className="px-4 py-8 text-muted-foreground">{error}</p>
-
-  const other = me.email === DEMO_ACCOUNTS.driver.email ? DEMO_ACCOUNTS.rider : DEMO_ACCOUNTS.driver
 
   return (
     <div className="flex flex-col gap-8 px-4 py-6">
@@ -127,49 +91,16 @@ export default function AccountPage() {
       <section className="flex flex-col gap-3 rounded-3xl border border-border bg-card px-4 py-4">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Portefeuille Sen Trajet</p>
+            <p className="text-sm text-muted-foreground">Solde</p>
             <p className="font-display text-5xl tabular-nums">{fcfa(me.balance)}</p>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          En pré-production, Wave, Orange Money et Free Money se confirment tout seuls. Aucun argent n’est débité. Le
-          même écran branchera le webhook marchand.
-        </p>
-        <form className="flex flex-col gap-3" onSubmit={(event) => void topup(event)}>
-          <div className="flex gap-2">
-            {[2000, 5000, 10000].map((amount) => (
-              <button
-                key={amount}
-                type="button"
-                className="rounded-full bg-muted px-3 py-1.5 text-sm"
-                onClick={(event) => {
-                  const input = event.currentTarget.form?.elements.namedItem("amount")
-                  if (input instanceof HTMLInputElement) input.value = String(amount)
-                }}
-              >
-                {fcfa(amount)}
-              </button>
-            ))}
-          </div>
-          <Input name="amount" size="lg" inputMode="numeric" defaultValue={5000} min={500} max={500000} required />
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            {(
-              [
-                ["wave", "Wave"],
-                ["orange", "Orange"],
-                ["free", "Free"],
-              ] as [PayMethod, string][]
-            ).map(([id, label]) => (
-              <label key={id} className="flex items-center justify-center gap-2 rounded-xl border border-border px-2 py-2">
-                <input type="radio" name="method" value={id} defaultChecked={id === "wave"} />
-                {label}
-              </label>
-            ))}
-          </div>
-          <Button type="submit" size="lg" disabled={busy}>
-            Recharger
-          </Button>
-        </form>
+        <p className="text-sm text-muted-foreground">Wave arrive. Pour l’instant, espèces ou solde.</p>
+        {me.role === "admin" ? (
+          <Link href="/app/admin" className={buttonVariants({ size: "lg" })}>
+            Exploitation
+          </Link>
+        ) : null}
       </section>
 
       <section className="flex flex-col gap-3">
@@ -198,7 +129,8 @@ export default function AccountPage() {
             </p>
             <p className="text-sm">
               {me.driver.plate}
-              {me.driver.serene ? " · Trajet Serein" : ""} · {me.driver.online ? "en ligne" : "hors ligne"}
+              {me.driver.serene ? " · Trajet Serein" : ""} ·{" "}
+              {me.driver.kyc === "verified" ? (me.driver.online ? "en ligne" : "hors ligne") : "dossier en revue"}
             </p>
             <Link href="/app/chauffeur" className={buttonVariants({ size: "lg" })}>
               Ouvrir le poste chauffeur
@@ -206,9 +138,7 @@ export default function AccountPage() {
           </div>
         ) : (
           <form className="flex flex-col gap-3" onSubmit={(event) => void become(event)}>
-            <p className="text-sm text-muted-foreground">
-              Une plaque du type DK 1234 AB et les infos du véhicule suffisent. La vérification est automatique.
-            </p>
+            <p className="text-sm text-muted-foreground">Plaque du type DK 1234 AB. On valide le dossier avant la mise en ligne.</p>
             <CategoryField />
             <Input name="make" size="lg" placeholder="Marque" required />
             <Input name="model" size="lg" placeholder="Modèle" required />
@@ -220,7 +150,7 @@ export default function AccountPage() {
               <Switch checked={sereneDriver} onCheckedChange={setSereneDriver} aria-label="Trajet Serein" />
             </div>
             <Button type="submit" size="lg" disabled={busy}>
-              Vérifier et activer
+              Envoyer le dossier
             </Button>
           </form>
         )}
@@ -273,15 +203,9 @@ export default function AccountPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-2xl">Démonstration</h2>
-        <Button variant="secondary" size="lg" disabled={busy} onClick={() => void enterDemo(other.email)}>
-          Passer sur le compte {other.name}
-        </Button>
-        <Button variant="outline" size="lg" onClick={() => void logout()}>
-          Se déconnecter
-        </Button>
-      </section>
+      <Button variant="outline" size="lg" onClick={() => void logout()}>
+        Se déconnecter
+      </Button>
     </div>
   )
 }
@@ -291,7 +215,7 @@ function CategoryField() {
   return (
     <div className="grid grid-cols-2 gap-2">
       <input type="hidden" name="category" value={category} />
-      {CATEGORY_ORDER.map((id) => (
+      {RIDE_CLASSES.map((id) => (
         <button
           key={id}
           type="button"

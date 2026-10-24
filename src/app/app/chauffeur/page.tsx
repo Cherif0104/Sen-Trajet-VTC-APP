@@ -11,6 +11,7 @@ import type { RideDTO } from "@/lib/dto"
 import { fcfa, formatMinutes } from "@/lib/format"
 
 type Desk = {
+  kyc: string
   online: boolean
   vehicle: string
   plate: string
@@ -50,6 +51,26 @@ export default function DriverPage() {
     }
   }, [])
 
+  const online = desk?.online ?? false
+  useEffect(() => {
+    if (!online || !navigator.geolocation) return
+    let last = 0
+    const watch = navigator.geolocation.watchPosition((position) => {
+      const at = Date.now()
+      if (at - last < 8000) return
+      last = at
+      void api("/api/driver", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "location",
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }),
+      }).catch(() => undefined)
+    })
+    return () => navigator.geolocation.clearWatch(watch)
+  }, [online])
+
   async function act(action: string, extra?: { rating?: number }) {
     setBusy(true)
     try {
@@ -85,20 +106,27 @@ export default function DriverPage() {
     <div className="flex flex-col gap-5 px-4 py-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-4xl">{desk.online ? "En ligne" : "Hors ligne"}</h1>
+          <h1 className="font-display text-4xl">
+            {desk.kyc !== "verified" ? "Dossier en revue" : desk.online ? "En ligne" : "Hors ligne"}
+          </h1>
           <p className="text-sm text-muted-foreground">
             {CATEGORIES[desk.category].label} · {desk.vehicle} · {desk.plate}
           </p>
         </div>
-        <Switch checked={desk.online} disabled={busy} onCheckedChange={(checked) => void act(checked ? "online" : "offline")} />
+        <Switch
+          checked={desk.online}
+          disabled={busy || desk.kyc !== "verified"}
+          onCheckedChange={(checked) => void act(checked ? "online" : "offline")}
+        />
       </div>
+      {desk.kyc !== "verified" ? (
+        <p className="text-sm text-muted-foreground">On vérifie le véhicule. La mise en ligne attend la validation.</p>
+      ) : null}
 
       <div className="rounded-3xl border border-border bg-card px-5 py-4">
         <p className="text-sm text-muted-foreground">Net du jour, heure de Dakar</p>
         <p className="font-display text-4xl tabular-nums">{fcfa(desk.earningsToday)}</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Journal interne. Une course Wave de démonstration n’est pas un encaissement réel.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Espèces et solde. Wave n’est pas branché.</p>
       </div>
 
       {desk.offer ? (
@@ -157,12 +185,6 @@ export default function DriverPage() {
             Ouvrir la carte
           </Link>
         </section>
-      ) : null}
-
-      {!desk.offer && !desk.active ? (
-        <Button variant="secondary" size="xl" disabled={busy || !desk.online} onClick={() => void act("demo")}>
-          Recevoir une demande test
-        </Button>
       ) : null}
 
       <section className="flex flex-col gap-2">

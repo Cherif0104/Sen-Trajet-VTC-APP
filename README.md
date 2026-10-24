@@ -11,25 +11,27 @@ npm install
 npm run dev
 ```
 
-L’application écoute sur [http://127.0.0.1:43123](http://127.0.0.1:43123). L’ouverture est un écran d’application : bienvenue, une étape, puis les profils fictifs. Un appui ouvre la session de ce profil.
+L’application écoute sur [http://127.0.0.1:43123](http://127.0.0.1:43123). L’ouverture est un écran : créer un compte, ou se connecter.
 
-Comptes de démonstration, mot de passe `Yoon2026!` :
+Comptes gardés pour les tests, mot de passe `Yoon2026!` (ils ne sont plus proposés à l’écran) :
 
 | Rôle | E-mail |
 | --- | --- |
 | Passagère | awa.ndiaye@yoon.sn |
 | Chauffeur | moussa.diop@yoon.sn |
 
-Awa a 15 000 F de crédit. Moussa est chauffeur Éco, hors ligne, Hyundai Grand i10, plaque DK 2026 SN, basé à Sacré-Cœur. Un réseau de chauffeurs de démonstration est déjà en ligne pour qu’une course se termine en environ une minute.
+Exploitation : `ops@sentrajet.sn`, mot de passe `SenTrajet2026!`. Le lien n’apparaît que sur ce compte.
+
+Awa a 15 000 F de crédit. Moussa est chauffeur Éco, hors ligne, Hyundai Grand i10, plaque DK 2026 SN. Une course sans chauffeur humain reste en recherche : personne n’est inventé.
 
 ## Ce que fait le produit
 
-- **Course** : Jakarta, Éco, Confort, 7 places. Affectation automatique du chauffeur libre le plus proche. Un indépendant en ligne passe devant le réseau de démonstration.
-- **Covoiturage** : le chauffeur publie un départ, les passagers réservent un ou plusieurs sièges. Le départ est maintenu même si le véhicule n’est pas plein.
-- **Trajet Serein** : conductrice uniquement. S’il n’y en a pas, la course est refusée au lieu d’être réassignée en silence.
-- **Paiement** : Wave, Orange Money, Free Money, portefeuille Sen Trajet, espèces. En pré-production, le mobile money se confirme sans débit réel. Le portefeuille, lui, est débité et recrédité pour de vrai dans la base.
-- **Commission** : 12 % sur Éco, Confort et 7 places, 10 % sur le Jakarta et le covoiturage. Le net est montré au chauffeur avant d’accepter.
-- **Vérification chauffeur** : mobile sénégalais et plaque du type `DK 1234 AB`. Une note sous 3,8 après six évaluations bloque la mise en ligne.
+- **Course** : Éco, Confort, Confort+. Le prix est affiché avant de monter. Jakarta (livraison et moto) et le van ne sont pas dans le choix passager.
+- **Covoiturage** : le chauffeur publie un départ, les passagers réservent un siège. Les départs marqués démo ne sortent plus dans la recherche.
+- **Trajet Serein** : conductrice uniquement. S’il n’y en a pas, la course est refusée.
+- **Paiement** : solde et espèces. Wave, Orange Money et Free Money affichent « Bientôt » et ne sont pas encaissés.
+- **Commission** : 12 % sur Éco, Confort et Confort+, 10 % sur le Jakarta (moteur) et le covoiturage.
+- **Chauffeur** : un nouveau dossier reste en revue tant qu’un admin ne le valide pas. Hors ligne tant que ce n’est pas fait.
 
 ## Données
 
@@ -45,11 +47,11 @@ Sur Vercel, ces deux variables sont obligatoires : une fonction serverless ne co
 
 ## Ce qu’un acheteur peut voir, et ce qui reste simulé
 
-Une course et un siège se déroulent de bout en bout : prix verrouillé, affectation, portefeuille, commission, annulation, remboursement. Les écritures du portefeuille sont de vraies lignes dans la base de démonstration.
+Une course et un siège se déroulent de bout en bout : prix verrouillé, recherche d’un chauffeur, portefeuille, commission, annulation, remboursement. Les écritures du solde sont de vraies lignes.
 
-Wave, Orange Money et Free Money ne débitent personne. La flotte qui se déplace seule est une flotte de démonstration, signalée dans l’interface. Les comptes `awa.ndiaye@yoon.sn` et `moussa.diop@yoon.sn` restent des comptes fictifs.
+Wave, Orange Money et Free Money ne débitent personne et ne se confirment plus tout seuls. Les comptes `awa.ndiaye@yoon.sn` et `moussa.diop@yoon.sn` restent des comptes de test.
 
-Les commissions en vigueur sont celles du code : 12 % pour Éco, Confort et 7 places, 10 % pour le Jakarta et le covoiturage. Le projet Supabase déjà nommé SEN TRAJET n’est pas la base de cette application.
+Les commissions en vigueur sont celles du code : 12 % pour Éco, Confort et Confort+, 10 % pour le Jakarta et le covoiturage. Le projet Supabase déjà nommé SEN TRAJET n’est pas la base de cette application. Un déploiement durable attend un `DATABASE_URL` dédié.
 
 ## Scripts
 

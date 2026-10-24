@@ -168,3 +168,5 @@ alter table carpools enable row level security;
 alter table bookings enable row level security;
 alter table transactions enable row level security;
 alter table notifications enable row level security;
+
+alter table users add column if not exists role text not null default 'rider';

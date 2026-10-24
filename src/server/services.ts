@@ -19,6 +19,7 @@ import {
   ridePhase,
   suggestSeatPrice,
   tripMotionSeconds,
+  corridors,
   type CategoryId,
   type PayMethod,
   type RankableDriver,
@@ -63,8 +64,15 @@ function point(value: unknown, label: string): GeoPoint {
 }
 
 function categoryOf(value: unknown): CategoryId {
-  if (value === "jakarta" || value === "eco" || value === "confort" || value === "van") return value
+  if (value === "jakarta" || value === "eco" || value === "confort" || value === "confort_plus" || value === "van") {
+    return value
+  }
   throw new ApiError("Choisissez un type de véhicule.")
+}
+
+function forClients<T extends { bot: boolean }>(drivers: T[]) {
+  if (process.env.YOON_DB === "memory") return drivers
+  return drivers.filter((driver) => !driver.bot)
 }
 
 function methodOf(value: unknown): PayMethod {
@@ -132,7 +140,7 @@ async function charge(
   const reference = paymentReference(input.method)
   if (input.method === "wallet") {
     if ((await balanceOf(sql, input.userId)) < input.amount) {
-      throw new ApiError("Solde insuffisant. Rechargez le portefeuille, ou payez avec Wave.")
+      throw new ApiError("Solde trop bas. Passe en espèces.")
     }
     await postTx(sql, {
       userId: input.userId,
@@ -145,6 +153,9 @@ async function charge(
       bookingId: input.bookingId,
     })
     return { reference, status: "paid" }
+  }
+  if (input.method === "wave" || input.method === "orange" || input.method === "free") {
+    throw new ApiError("Wave, Orange Money et Free Money ne sont pas branchés.")
   }
   await postTx(sql, {
     userId: input.userId,
@@ -386,7 +397,7 @@ async function acceptRide(sql: Sql, ride: Ride, driver: DriverFull) {
 async function dispatchRide(sql: Sql, rideId: string) {
   const ride = await lockRide(sql, rideId)
   if (!ride || ride.status !== "matching") return
-  const pool = await loadDrivers(sql, ride.category)
+  const pool = forClients(await loadDrivers(sql, ride.category))
   const ranked = rankDrivers({
     drivers: pool,
     pickup: ride.pickup,
@@ -395,10 +406,7 @@ async function dispatchRide(sql: Sql, rideId: string) {
     exclude: ride.offered,
   }).filter((item) => !ride.exclusiveDriverId || item.driver.id === ride.exclusiveDriverId)
   const next = ranked[0]?.driver as DriverFull | undefined
-  if (!next) {
-    await cancelRide(sql, ride, "system", "Aucun chauffeur n’a accepté la course. Vous n’êtes pas débité au-delà du remboursement automatique.", 0)
-    return
-  }
+  if (!next) return
   if (next.bot && !ride.exclusiveDriverId) {
     await acceptRide(sql, ride, next)
     return
@@ -735,6 +743,7 @@ export async function getMe(userId: string): Promise<MeDTO> {
             online: flag(driver.online),
             launchFleet: flag(driver.bot),
             rating: num(user.rating),
+            kyc: text(driver.kyc),
           }
         : null,
       transactions: transactions.map((item) => ({
@@ -757,6 +766,7 @@ export async function getMe(userId: string): Promise<MeDTO> {
       })),
       unread: num(unread[0]?.n),
       activeRideId: active[0]?.id ?? null,
+      role: text(user.role) === "admin" ? "admin" : "rider",
     }
   })
 }
@@ -801,13 +811,13 @@ export async function becomeDriver(
     const values = [category, input.make.trim(), input.model.trim(), input.color.trim(), plate, CATEGORIES[category].seats, input.serene]
     if (existing[0]) {
       await sql.query(
-        `update drivers set category = $2, make = $3, model = $4, color = $5, plate = $6, seats = $7, serene = $8, kyc = 'verified' where user_id = $1`,
+        `update drivers set category = $2, make = $3, model = $4, color = $5, plate = $6, seats = $7, serene = $8 where user_id = $1`,
         [userId, ...values],
       )
     } else {
       await sql.query(
         `insert into drivers (user_id, category, make, model, color, plate, seats, serene, online, lat, lng, home_lat, home_lng, kyc, bot, acceptance)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,false,14.7165,-17.4678,14.7165,-17.4678,'verified',false,1)`,
+         values ($1,$2,$3,$4,$5,$6,$7,$8,false,14.7165,-17.4678,14.7165,-17.4678,'pending',false,1)`,
         [userId, ...values],
       )
     }
@@ -816,32 +826,17 @@ export async function becomeDriver(
 }
 
 export async function topup(userId: string, amount: number, method: string) {
-  const pay = methodOf(method)
-  if (pay === "wallet" || pay === "cash") throw new ApiError("Rechargez avec Wave, Orange Money ou Free Money.")
-  if (!Number.isFinite(amount) || amount < 500 || amount > 500_000) {
-    throw new ApiError("Le montant doit être compris entre 500 F et 500 000 F.")
-  }
-  const rounded = Math.round(amount / 50) * 50
-  await withDb(async (sql) => {
-    const reference = paymentReference(pay)
-    await postTx(sql, {
-      userId,
-      amount: rounded,
-      type: "topup",
-      method: pay,
-      reference,
-      affects: true,
-    })
-    await notify(sql, userId, "Portefeuille rechargé", `${rounded} F confirmés (${reference}).`, "/app/compte")
-  })
-  return getMe(userId)
+  methodOf(method)
+  void userId
+  void amount
+  throw new ApiError("Wave arrive. Pour l’instant, espèces ou solde.")
 }
 
 async function nearestByCategory(sql: Sql, pickup: GeoPoint) {
   const nearest: Partial<Record<CategoryId, { km: number; bot: boolean } | null>> = {}
   const serene: Partial<Record<CategoryId, boolean>> = {}
   for (const category of Object.keys(CATEGORIES) as CategoryId[]) {
-    const pool = await loadDrivers(sql, category)
+    const pool = forClients(await loadDrivers(sql, category))
     const ranked = rankDrivers({ drivers: pool, pickup, category, serene: false })
     const first = ranked[0]
     nearest[category] = first ? { km: first.km, bot: first.driver.bot } : null
@@ -1089,6 +1084,7 @@ export async function driverDesk(userId: string) {
     )
     const fresh = await driverById(sql, userId)
     return {
+      kyc: fresh?.kyc ?? "pending",
       online: fresh?.online ?? false,
       vehicle: fresh ? `${fresh.color} ${fresh.make} ${fresh.model}` : "",
       plate: fresh?.plate ?? "",
@@ -1105,6 +1101,9 @@ export async function setDriverOnline(userId: string, online: boolean) {
   await withDb(async (sql) => {
     const driver = await driverById(sql, userId)
     if (!driver) throw new ApiError("Complétez votre véhicule pour passer en ligne.")
+    if (online && driver.kyc !== "verified") {
+      throw new ApiError("Ton dossier est en revue. Tu passes en ligne une fois qu’il est validé.")
+    }
     const users = await sql.query(`select rating, rating_count from users where id = $1`, [userId])
     if (online && num(users[0]?.rating) < 3.8 && num(users[0]?.rating_count) >= 6) {
       throw new ApiError("Note sous 3,8 : les mises en ligne sont suspendues automatiquement.")
@@ -1134,46 +1133,7 @@ export async function driverAct(userId: string, action: string, extra?: { lat?: 
     })
     return driverDesk(userId)
   }
-  if (action === "demo") {
-    return withDb(async (sql) => {
-      const driver = await driverById(sql, userId)
-      if (!driver) throw new ApiError("Complétez votre véhicule.")
-      if (!driver.online) throw new ApiError("Passez en ligne pour recevoir une demande.")
-      if (driver.busy) throw new ApiError("Vous avez déjà une course.")
-      const rider = await sql.query<{ id: string }>(`select id from users where email = 'bineta.sarr@yoon.sn'`)
-      if (!rider[0]) throw new ApiError("La demande test est indisponible.")
-      const existing = await sql.query(
-        `select id from rides where rider_id = $1 and status in ${ACTIVE_SQL}`,
-        [rider[0].id],
-      )
-      for (const row of existing) {
-        const ride = await lockRide(sql, text(row.id))
-        if (ride) await cancelRide(sql, ride, "system", "Remplacée par une nouvelle demande test.", 0)
-      }
-      return { created: true as const, riderId: rider[0].id, driver }
-    }).then(async (prepared) => {
-      await createRide({
-        riderId: prepared.riderId,
-        pickup: {
-          label: "À proximité",
-          city: "Dakar",
-          lat: prepared.driver.lat + 0.004,
-          lng: prepared.driver.lng,
-        },
-        dropoff: {
-          label: "Destination test",
-          city: "Dakar",
-          lat: prepared.driver.lat + 0.028,
-          lng: prepared.driver.lng - 0.01,
-        },
-        category: prepared.driver.category,
-        method: "wave",
-        serene: false,
-        exclusiveDriverId: userId,
-      })
-      return driverDesk(userId)
-    })
-  }
+  if (action === "demo") throw new ApiError("Cette action n’existe plus.")
   return withDb(async (sql) => {
     const offer = await sql.query<{ id: string }>(
       `select id from rides where offered_driver_id = $1 and status = 'matching' limit 1`,
@@ -1232,7 +1192,7 @@ export async function searchCarpools(input: {
     await sweepCarpools(sql)
     const rows = await sql.query(
       `${CARPOOL_SELECT}
-       where c.status = 'published' and c.seats_left >= $1
+       where c.status = 'published' and c.demo = false and c.seats_left >= $1
          and (c.depart_at at time zone 'Africa/Dakar')::date = $2::date
        order by c.depart_at asc`,
       [seats, input.date],
@@ -1478,4 +1438,74 @@ export async function suggestPrice(origin: unknown, destination: unknown) {
     distanceM: measured.distanceM,
     durationS: measured.durationS,
   }
+}
+
+async function assertAdmin(sql: Sql, userId: string) {
+  const rows = await sql.query(`select role from users where id = $1`, [userId])
+  if (text(rows[0]?.role) !== "admin") throw new ApiError("Accès réservé.", 403)
+}
+
+export async function adminDesk(userId: string) {
+  return withDb(async (sql) => {
+    await assertAdmin(sql, userId)
+    const rides = await sql.query(
+      `select id, status, category, pickup_label, dropoff_label, fare_xof, created_at
+       from rides where status in ('matching','accepted','arrived','in_progress')
+       order by created_at desc limit 30`,
+    )
+    const drivers = await sql.query(
+      `select d.user_id, d.plate, d.make, d.model, d.color, d.category, u.name, u.phone
+       from drivers d join users u on u.id = d.user_id
+       where d.kyc = 'pending' and d.bot = false
+       order by u.name`,
+    )
+    const disputes = await sql.query(
+      `select id, pickup_label, dropoff_label, cancel_reason, cancelled_by, fare_xof, payment_method
+       from rides where status = 'cancelled'
+       order by created_at desc limit 20`,
+    )
+    return {
+      rides: rides.map((row) => ({
+        id: text(row.id),
+        status: text(row.status),
+        category: text(row.category),
+        pickup: text(row.pickup_label),
+        dropoff: text(row.dropoff_label),
+        fare: num(row.fare_xof),
+        createdAt: iso(row.created_at) ?? now().toISOString(),
+      })),
+      drivers: drivers.map((row) => ({
+        id: text(row.user_id),
+        name: text(row.name),
+        phone: text(row.phone),
+        plate: text(row.plate),
+        vehicle: `${text(row.color)} ${text(row.make)} ${text(row.model)}`,
+        category: text(row.category),
+      })),
+      corridors: corridors(),
+      disputes: disputes.map((row) => ({
+        id: text(row.id),
+        pickup: text(row.pickup_label),
+        dropoff: text(row.dropoff_label),
+        reason: row.cancel_reason ? text(row.cancel_reason) : "",
+        by: row.cancelled_by ? text(row.cancelled_by) : "",
+        fare: num(row.fare_xof),
+        method: text(row.payment_method),
+      })),
+    }
+  })
+}
+
+export async function adminAct(userId: string, action: string, targetId: string) {
+  await withDb(async (sql) => {
+    await assertAdmin(sql, userId)
+    if (action !== "approve") throw new ApiError("Action inconnue.")
+    const updated = await sql.query(
+      `update drivers set kyc = 'verified' where user_id = $1 and kyc = 'pending' returning user_id`,
+      [targetId],
+    )
+    if (!updated[0]) throw new ApiError("Ce dossier n’est plus en revue.")
+    await notify(sql, targetId, "Véhicule validé", "Tu peux passer en ligne.", "/app/chauffeur")
+  })
+  return adminDesk(userId)
 }

@@ -1,4 +1,4 @@
-export type CategoryId = "jakarta" | "eco" | "confort" | "van"
+export type CategoryId = "jakarta" | "eco" | "confort" | "confort_plus" | "van"
 
 export type PayMethod = "wallet" | "wave" | "orange" | "free" | "cash"
 
@@ -59,6 +59,19 @@ export const CATEGORIES: Record<
     radiusKm: 12,
     botRadiusKm: 34,
   },
+  confort_plus: {
+    id: "confort_plus",
+    label: "Confort+",
+    detail: "Berline calme, un cran au-dessus",
+    seats: 4,
+    base: 950,
+    perKm: 420,
+    perMin: 50,
+    minimum: 1800,
+    commission: 0.12,
+    radiusKm: 12,
+    botRadiusKm: 34,
+  },
   van: {
     id: "van",
     label: "7 places",
@@ -74,16 +87,18 @@ export const CATEGORIES: Record<
   },
 }
 
-export const CATEGORY_ORDER: CategoryId[] = ["eco", "confort", "jakarta", "van"]
+export const CATEGORY_ORDER: CategoryId[] = ["eco", "confort", "confort_plus", "jakarta", "van"]
+
+export const RIDE_CLASSES: CategoryId[] = ["eco", "confort", "confort_plus"]
 
 export const AIBD = { lat: 14.6703, lng: -17.0733 }
 
-export const PAY_METHODS: { id: PayMethod; label: string; hint: string }[] = [
-  { id: "wave", label: "Wave", hint: "Simulation, sans débit réel" },
-  { id: "orange", label: "Orange Money", hint: "Simulation, sans débit réel" },
-  { id: "free", label: "Free Money", hint: "Simulation, sans débit réel" },
-  { id: "wallet", label: "Portefeuille Sen Trajet", hint: "Débit du solde" },
-  { id: "cash", label: "Espèces", hint: "Remises au chauffeur" },
+export const PAY_METHODS: { id: PayMethod; label: string; hint: string; live: boolean }[] = [
+  { id: "wallet", label: "Solde", hint: "Débit du portefeuille", live: true },
+  { id: "cash", label: "Espèces", hint: "Tu paies le chauffeur", live: true },
+  { id: "wave", label: "Wave", hint: "Bientôt", live: false },
+  { id: "orange", label: "Orange Money", hint: "Bientôt", live: false },
+  { id: "free", label: "Free Money", hint: "Bientôt", live: false },
 ]
 
 export function roundTo(value: number, step: number) {
@@ -248,7 +263,7 @@ export function quoteAll(input: {
     if (tooShort) reason = "Ce trajet est trop court."
     else if (category === "jakarta" && (km > 25 || priced.airport)) {
       reason = "Le Jakarta reste dans Dakar."
-    } else if (!nearest) reason = "Aucun chauffeur libre à proximité."
+    }
     const available = !reason
     return {
       category,
@@ -329,6 +344,10 @@ export function normalizePlate(input: string) {
   const plate = input.trim().toUpperCase().replace(/\s+/g, " ")
   if (!/^[A-Z]{2}\s?-?\s?\d{3,4}\s?-?\s?[A-Z]{1,2}$/.test(plate)) return null
   return plate
+}
+
+export function corridors() {
+  return CORRIDORS.map((corridor) => ({ ...corridor }))
 }
 
 const CORRIDORS: { a: string; b: string; price: number }[] = [

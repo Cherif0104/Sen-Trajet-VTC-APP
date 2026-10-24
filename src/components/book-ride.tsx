@@ -1,10 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { BikeIcon, BusIcon, CarFrontIcon, CarIcon } from "lucide-react"
 import { toast } from "sonner"
-import { DemoNote } from "@/components/demo-indicator"
 import { FareCard } from "@/components/fare-card"
 import { FocusBar } from "@/components/focus-bar"
 import { PayPicker } from "@/components/pay-picker"
@@ -15,44 +14,58 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/client"
-import type { Quote, PayMethod } from "@/lib/domain"
+import { RIDE_CLASSES, type Quote, type PayMethod } from "@/lib/domain"
 import type { RideDTO } from "@/lib/dto"
 import { fcfa, formatKm, formatMinutes } from "@/lib/format"
-import { placeById, POPULAR_IDS, toPoint, type GeoPoint } from "@/lib/places"
+import type { GeoPoint } from "@/lib/places"
 import { cn } from "cn"
 
 type FareQuote = Quote & { sereneAvailable: boolean }
 
 const steps = ["Trajet", "Véhicule", "Paiement"]
 
-export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
+const vehicleArt: Record<string, string> = {
+  eco: "/vehicles/eco.jpg",
+  confort: "/vehicles/confort.jpg",
+  confort_plus: "/vehicles/confort-plus.jpg",
+}
+
+export function BookRide({
+  initialPickup = null,
+  initialDropoff = null,
+}: {
+  initialPickup?: GeoPoint | null
+  initialDropoff?: GeoPoint | null
+}) {
   const router = useRouter()
   const { me } = useMe()
-  const initialPickup = placeById(fromId ?? "sacre-coeur")
-  const initialDropoff = toId ? placeById(toId) : null
-  const [pickup, setPickup] = useState<GeoPoint | null>(initialPickup ? toPoint(initialPickup) : null)
-  const [dropoff, setDropoff] = useState<GeoPoint | null>(initialDropoff ? toPoint(initialDropoff) : null)
-  const [step, setStep] = useState(0)
+  const [pickup, setPickup] = useState<GeoPoint | null>(initialPickup)
+  const [dropoff, setDropoff] = useState<GeoPoint | null>(initialDropoff)
+  const [step, setStep] = useState(initialPickup && initialDropoff ? 1 : 0)
   const [quotes, setQuotes] = useState<FareQuote[] | null>(null)
   const [distanceM, setDistanceM] = useState(0)
   const [durationS, setDurationS] = useState(0)
   const [quoting, setQuoting] = useState(false)
   const [category, setCategory] = useState("eco")
   const [serene, setSerene] = useState(false)
-  const [method, setMethod] = useState<PayMethod>("wave")
+  const [method, setMethod] = useState<PayMethod>("cash")
   const [busy, setBusy] = useState(false)
-  const pickupEdited = useRef(Boolean(fromId))
+  const pickupEdited = useRef(Boolean(initialPickup))
 
   useEffect(() => {
-    if (fromId || pickupEdited.current) return
+    if (initialPickup || pickupEdited.current) return
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition((position) => {
       if (pickupEdited.current) return
       const { latitude, longitude } = position.coords
-      if (latitude < 12 || latitude > 17 || longitude < -18 || longitude > -11) return
-      setPickup({ label: "Ma position", city: "Dakar", lat: latitude, lng: longitude })
+      void api<{ place: GeoPoint | null }>(`/api/places?lat=${latitude}&lng=${longitude}`)
+        .then((data) => {
+          if (pickupEdited.current || !data.place) return
+          setPickup(data.place)
+        })
+        .catch(() => undefined)
     })
-  }, [fromId])
+  }, [initialPickup])
 
   useEffect(() => {
     if (!pickup || !dropoff) return
@@ -67,8 +80,9 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
           setDistanceM(data.distanceM)
           setDurationS(data.durationS)
           setCategory((current) => {
-            const still = data.quotes.find((quote) => quote.category === current && quote.available)
-            return still?.category ?? data.quotes.find((quote) => quote.available)?.category ?? current
+            const classes = data.quotes.filter((quote) => RIDE_CLASSES.includes(quote.category as (typeof RIDE_CLASSES)[number]))
+            const still = classes.find((quote) => quote.category === current && quote.available)
+            return still?.category ?? classes.find((quote) => quote.available)?.category ?? current
           })
         })
         .catch((error: unknown) => {
@@ -81,9 +95,10 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
   }, [pickup, dropoff])
 
   const shownQuotes = pickup && dropoff ? quotes : null
+  const classes = shownQuotes?.filter((quote) => RIDE_CLASSES.includes(quote.category as (typeof RIDE_CLASSES)[number])) ?? null
   const selected = useMemo(
-    () => shownQuotes?.find((quote) => quote.category === category) ?? null,
-    [shownQuotes, category],
+    () => classes?.find((quote) => quote.category === category) ?? null,
+    [classes, category],
   )
   const sereneBlocked = Boolean(serene && selected && !selected.sereneAvailable)
   const canPay =
@@ -151,25 +166,15 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
                 pickupEdited.current = true
                 setPickup(null)
               }}
-              placeholder="Sacré-Cœur, Plateau…"
+              placeholder="Ta position"
             />
-            <PlaceField label="Arrivée" value={dropoff} onChange={setDropoff} onClear={() => setDropoff(null)} placeholder="Almadies, AIBD, Thiès…" />
-            <div className="flex gap-2 overflow-x-auto">
-              {POPULAR_IDS.slice(0, 6).map((id) => {
-                const place = placeById(id)
-                if (!place) return null
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    className="shrink-0 rounded-full border border-border px-3 py-1.5 text-sm"
-                    onClick={() => setDropoff(toPoint(place))}
-                  >
-                    {place.label}
-                  </button>
-                )
-              })}
-            </div>
+            <PlaceField
+              label="Arrivée"
+              value={dropoff}
+              onChange={setDropoff}
+              onClear={() => setDropoff(null)}
+              placeholder="Où tu vas"
+            />
             {shownQuotes ? (
               <p className="text-sm text-muted-foreground">
                 {formatKm(distanceM)} · {formatMinutes(durationS)}
@@ -183,65 +188,50 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
 
         {step === 1 ? (
           <div className="flex flex-col gap-3">
-            {quoting || !shownQuotes ? (
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-20 w-full rounded-2xl" />
-                <Skeleton className="h-20 w-full rounded-2xl" />
-              </div>
+            {quoting || !classes ? (
+              <Skeleton className="h-52 w-full rounded-3xl" />
             ) : (
-              <div className="flex flex-col gap-2">
-                {shownQuotes.map((quote) => {
-                  const Icon =
-                    quote.category === "jakarta" ? BikeIcon : quote.category === "van" ? BusIcon : quote.category === "confort" ? CarFrontIcon : CarIcon
-                  return (
-                    <button
-                      key={quote.category}
-                      type="button"
-                      disabled={!quote.available}
-                      onClick={() => setCategory(quote.category)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-2xl border px-3 py-3 text-left",
-                        category === quote.category ? "border-primary bg-primary/5" : "border-border bg-white",
-                        !quote.available && "opacity-60",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-full",
-                          category === quote.category ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground",
-                        )}
-                      >
-                        <Icon className="size-4" />
-                      </span>
-                      <span className="min-w-0 flex-1">
+              <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+                {classes.map((quote) => (
+                  <button
+                    key={quote.category}
+                    type="button"
+                    disabled={!quote.available}
+                    onClick={() => setCategory(quote.category)}
+                    className={cn(
+                      "w-[78%] shrink-0 snap-center rounded-3xl border bg-white p-3 text-left",
+                      category === quote.category ? "border-primary" : "border-border",
+                      !quote.available && "opacity-60",
+                    )}
+                  >
+                    <Image
+                      src={vehicleArt[quote.category] ?? "/vehicles/eco.jpg"}
+                      alt=""
+                      width={640}
+                      height={400}
+                      className="h-36 w-full object-contain"
+                    />
+                    <span className="mt-2 flex items-end justify-between gap-2">
+                      <span>
                         <span className="block font-medium">{quote.label}</span>
                         <span className="block text-xs text-muted-foreground">
                           {quote.available ? quote.detail : quote.reason}
                         </span>
                       </span>
-                      <span className="text-right">
-                        <span className="block text-lg font-semibold tabular-nums">
-                          {quote.fare ? fcfa(quote.fare) : "—"}
-                        </span>
-                        {quote.available && quote.etaPickupS ? (
-                          <span className="block text-xs text-muted-foreground">{formatMinutes(quote.etaPickupS)}</span>
-                        ) : null}
-                      </span>
-                    </button>
-                  )
-                })}
+                      <span className="text-lg font-semibold tabular-nums">{quote.fare ? fcfa(quote.fare) : "—"}</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
               <span>
                 <span className="block font-medium">Trajet Serein</span>
-                <span className="block text-sm opacity-80">Conductrice uniquement. Sinon, Sen Trajet le dit.</span>
+                <span className="block text-sm opacity-80">Conductrice seulement.</span>
               </span>
               <Switch checked={serene} onCheckedChange={setSerene} aria-label="Trajet Serein" />
             </div>
-            {sereneBlocked ? (
-              <p className="text-sm text-destructive">Aucune conductrice libre dans cette catégorie à proximité.</p>
-            ) : null}
+            {sereneBlocked ? <p className="text-sm text-destructive">Aucune conductrice libre près de toi.</p> : null}
             {selected?.surgeLabel ? <p className="text-sm text-muted-foreground">{selected.surgeLabel}</p> : null}
             <Button size="xl" disabled={!selected?.available || sereneBlocked} onClick={() => setStep(2)}>
               {selected ? `Choisir ${selected.label}` : "Continuer"}
@@ -252,15 +242,14 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
         {step === 2 && selected ? (
           <div className="flex flex-col gap-4">
             <FareCard
-              eyebrow={`${selected.label}${serene ? " · Trajet Serein" : ""} · ${pickup?.label ?? ""} → ${dropoff?.label ?? ""}`}
+              eyebrow={`${selected.label}${serene ? " · Trajet Serein" : ""}`}
               amount={selected.fare ? fcfa(selected.fare) : "—"}
-              detail={selected.surgeLabel}
-              note="Ce prix est verrouillé. Il ne change plus après la confirmation."
+              detail={`${pickup?.label ?? ""} → ${dropoff?.label ?? ""}`}
+              note="Prix bloqué. Il ne bouge plus."
             />
-            <DemoNote>Wave, Orange Money et Free Money se confirment ici sans débit réel.</DemoNote>
             <PayPicker value={method} onChange={setMethod} balance={me?.balance ?? 0} />
             {method === "wallet" && selected.fare && (me?.balance ?? 0) < selected.fare ? (
-              <p className="text-sm text-destructive">Solde insuffisant. Rechargez le portefeuille, ou payez avec Wave.</p>
+              <p className="text-sm text-destructive">Solde trop bas. Passe en espèces.</p>
             ) : null}
             <Button size="xl" disabled={!canPay || busy} onClick={() => void confirm()}>
               {busy ? "Confirmation…" : `Confirmer · ${selected.fare ? fcfa(selected.fare) : ""}`}

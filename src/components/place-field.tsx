@@ -49,6 +49,9 @@ export function PlaceField({
           if (value && next !== value.label) onClear?.()
         }}
       />
+      {open && query.trim().length < 2 ? (
+        <p className="text-sm text-muted-foreground">Tape ta rue.</p>
+      ) : null}
       {open && places.length > 0 ? (
         <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
           {places.map((place) => (

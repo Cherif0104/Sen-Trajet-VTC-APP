@@ -52,6 +52,18 @@ async function ensureUser(sql: Sql, person: Person) {
   return id
 }
 
+async function ensureAdmin(sql: Sql) {
+  const email = "ops@sentrajet.sn"
+  const id = await ensureUser(sql, {
+    email,
+    password: "SenTrajet2026!",
+    name: "Ops Sen Trajet",
+    phone: "+221770000001",
+    balance: 0,
+  })
+  await sql.query(`update users set role = 'admin' where id = $1`, [id])
+}
+
 async function ensureDriver(
   sql: Sql,
   input: {
@@ -179,6 +191,8 @@ export async function ensureSeed(sql: Sql) {
     online: false,
     acceptance: 0.96,
   })
+
+  await ensureAdmin(sql)
 
   const supply = await sql.query<{ n: number }>(
     `select count(*)::int as n from carpools where demo = true and status in ('published','full') and depart_at > now()`,

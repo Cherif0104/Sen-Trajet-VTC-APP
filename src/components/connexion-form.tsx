@@ -4,14 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
-import { SimAccounts } from "@/components/sim-accounts"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/client"
 
-export function ConnexionForm({ next }: { next: string }) {
+export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const destination = next.startsWith("/app") ? next : "/app"
@@ -35,10 +34,9 @@ export function ConnexionForm({ next }: { next: string }) {
         <SenTrajetMark />
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-4xl">Connexion</h1>
-          <p className="text-muted-foreground">Awa ou Moussa ouvrent une session. Le formulaire sert pour un autre compte.</p>
+          <p className="text-muted-foreground">E-mail et mot de passe. Le prix se voit avant de monter.</p>
         </div>
-        <SimAccounts next={destination} />
-        <Tabs defaultValue="login">
+        <Tabs defaultValue={tab === "signup" ? "signup" : "login"}>
           <TabsList className="w-full">
             <TabsTrigger value="login">Connexion</TabsTrigger>
             <TabsTrigger value="signup">Créer un compte</TabsTrigger>

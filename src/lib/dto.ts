@@ -12,6 +12,7 @@ export type PublicDriver = {
   online: boolean
   launchFleet: boolean
   rating: number
+  kyc: string
 }
 
 export type TransactionDTO = {
@@ -48,6 +49,7 @@ export type MeDTO = {
   notifications: NotificationDTO[]
   unread: number
   activeRideId: string | null
+  role: "rider" | "admin"
 }
 
 export type RideDriverDTO = {
