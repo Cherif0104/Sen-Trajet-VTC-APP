@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRightIcon, SearchIcon } from "lucide-react"
 import { useMe } from "@/components/use-me"
 import { buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -69,29 +69,32 @@ export default function AppHomePage() {
         </Link>
       ) : null}
 
-      <div className="flex flex-col gap-3">
-        <Link href="/app/course" className={buttonVariants({ size: "xl" })}>
-          Demander une course
-          <ArrowRightIcon data-icon="inline-end" />
-        </Link>
-        <Link href="/app/covoiturage" className={buttonVariants({ variant: "secondary", size: "xl" })}>
-          Réserver un siège
-        </Link>
-      </div>
+      <Link
+        href="/app/course"
+        className="flex items-center gap-3 rounded-full border border-border bg-card px-4 py-4"
+      >
+        <SearchIcon className="text-primary" />
+        <span className="flex-1 text-base">Où allez-vous ?</span>
+        <ArrowRightIcon className="text-muted-foreground" />
+      </Link>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Depuis Sacré-Cœur</h2>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {hops.map((hop) => (
-            <Link
-              key={hop.href}
-              href={hop.href}
-              className="shrink-0 rounded-full border border-border bg-card px-4 py-2 text-sm"
-            >
-              {hop.label}
-            </Link>
-          ))}
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-muted-foreground">Depuis Sacré-Cœur</h2>
+          <Link href="/app/covoiturage" className="text-sm text-primary">
+            Réserver un siège
+          </Link>
         </div>
+        <ul className="flex flex-col overflow-hidden rounded-3xl border border-border bg-card">
+          {hops.map((hop) => (
+            <li key={hop.href} className="border-b border-border last:border-b-0">
+              <Link href={hop.href} className="flex items-center justify-between px-4 py-3">
+                <span>{hop.label}</span>
+                <ArrowRightIcon className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="flex flex-col gap-3">

@@ -4,9 +4,9 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { PhoneIcon, Share2Icon, SirenIcon } from "lucide-react"
 import { toast } from "sonner"
+import { DemoNote, FleetBadge } from "@/components/demo-indicator"
 import { FocusBar } from "@/components/focus-bar"
 import { RideMap } from "@/components/ride-map"
-import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -140,12 +140,15 @@ export function RideLive({ id }: { id: string }) {
           <div className="flex flex-col gap-2 rounded-3xl bg-card px-4 py-4">
             <div className="flex items-center justify-between gap-2">
               <p className="font-medium">{ride.driver.name}</p>
-              <Badge variant="secondary">{ride.driver.launchFleet ? "Réseau Sen Trajet" : "Indépendant"}</Badge>
+              <FleetBadge launchFleet={ride.driver.launchFleet} />
             </div>
             <p className="text-sm text-muted-foreground">
               {ride.driver.color} {ride.driver.make} {ride.driver.model} · {ride.driver.plate} · {ride.driver.rating.toFixed(1).replace(".", ",")}
             </p>
             {ride.driver.serene || ride.serene ? <p className="text-sm text-accent">Trajet Serein</p> : null}
+            {ride.driver.launchFleet ? (
+              <DemoNote>Ce chauffeur fait partie de la flotte de démonstration. Ce n’est pas un chauffeur en service.</DemoNote>
+            ) : null}
             {ride.driver.phone ? (
               <a href={`tel:${ride.driver.phone}`} className={buttonVariants({ variant: "outline", size: "lg" })}>
                 <PhoneIcon data-icon="inline-start" />
@@ -155,7 +158,7 @@ export function RideLive({ id }: { id: string }) {
           </div>
         ) : ride.status === "matching" ? (
           <p className="text-sm text-muted-foreground">
-            Le réseau Sen Trajet accepte en quelques secondes. Un chauffeur indépendant en ligne et proche passe devant.
+            Un chauffeur indépendant en ligne et proche passe devant. Sinon, une flotte de démonstration accepte la course pour que le parcours puisse se terminer.
           </p>
         ) : null}
 

@@ -43,6 +43,14 @@ DATABASE_URL="postgresql://..." AUTH_SECRET="un-secret-long" npm run dev
 
 Sur Vercel, ces deux variables sont obligatoires : une fonction serverless ne conserve pas le fichier PGlite d’une instance à l’autre. Utilisez la chaîne de connexion en mode transaction (`prepare: false` est déjà réglé). Les politiques RLS sont activées sans policy pour le rôle anonyme : seul le serveur, avec l’utilisateur propriétaire, lit et écrit.
 
+## Ce qu’un acheteur peut voir, et ce qui reste simulé
+
+Une course et un siège se déroulent de bout en bout : prix verrouillé, affectation, portefeuille, commission, annulation, remboursement. Les écritures du portefeuille sont de vraies lignes dans la base de démonstration.
+
+Wave, Orange Money et Free Money ne débitent personne. La flotte qui se déplace seule est une flotte de démonstration, signalée dans l’interface. Les comptes `awa.ndiaye@yoon.sn` et `moussa.diop@yoon.sn` restent des comptes fictifs.
+
+Les commissions en vigueur sont celles du code : 12 % pour Éco, Confort et 7 places, 10 % pour le Jakarta et le covoiturage. Le projet Supabase déjà nommé SEN TRAJET n’est pas la base de cette application.
+
 ## Scripts
 
 ```bash

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { FleetBadge } from "@/components/demo-indicator"
 import { PlaceField } from "@/components/place-field"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -111,7 +112,7 @@ export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: 
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {trip.serene ? <Badge variant="secondary">Serein</Badge> : null}
-                  {trip.driver.launchFleet ? <Badge variant="outline">Réseau Sen Trajet</Badge> : <Badge variant="outline">Indépendant</Badge>}
+                  <FleetBadge launchFleet={trip.driver.launchFleet} />
                   {trip.amenities.slice(0, 3).map((item) => (
                     <Badge key={item} variant="outline">
                       {AMENITY_LABELS[item] ?? item}

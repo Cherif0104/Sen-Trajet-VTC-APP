@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { connection } from "next/server"
 import { ArrowRightIcon, ShieldCheckIcon, TimerIcon, WalletIcon } from "lucide-react"
+import { FareCard } from "@/components/fare-card"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { measureFallback, priceRoute } from "@/lib/domain"
@@ -24,16 +25,12 @@ async function SampleFare() {
         )
       : null
   return (
-    <aside className="rounded-3xl bg-accent p-6 text-accent-foreground">
-      <p className="text-sm text-accent-foreground/75">Exemple Éco · Sacré-Cœur → Almadies · heure de Dakar</p>
-      <p className="mt-3 font-display text-5xl">{sample ? fcfa(sample.fare) : "—"}</p>
-      <p className="mt-2 text-sm text-accent-foreground/80">
-        {sample?.surgeLabel ?? "Prix fixe, commission 12 % affichée au chauffeur."}
-      </p>
-      <p className="mt-6 text-sm text-accent-foreground/75">
-        Le même calcul sert à l’écran de réservation. Ce que vous voyez est ce que vous payez.
-      </p>
-    </aside>
+    <FareCard
+      eyebrow="Exemple Éco · Sacré-Cœur → Almadies · heure de Dakar"
+      amount={sample ? fcfa(sample.fare) : "—"}
+      detail={sample?.surgeLabel ?? "Prix fixe, commission 12 % affichée au chauffeur."}
+      note="La même carte sert à l’écran de réservation. Ce que vous voyez est ce que vous payez."
+    />
   )
 }
 
@@ -97,10 +94,7 @@ function Marketing() {
           </div>
           <Suspense
             fallback={
-              <aside className="rounded-3xl bg-accent p-6 text-accent-foreground">
-                <p className="text-sm text-accent-foreground/75">Exemple Éco · Sacré-Cœur → Almadies · heure de Dakar</p>
-                <p className="mt-3 font-display text-5xl">…</p>
-              </aside>
+              <FareCard eyebrow="Exemple Éco · Sacré-Cœur → Almadies · heure de Dakar" amount="…" />
             }
           >
             <SampleFare />

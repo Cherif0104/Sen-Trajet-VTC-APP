@@ -56,11 +56,17 @@ export function RideMap(props: Props) {
       const L = await import("leaflet")
       if (dead || !node.current || mapRef.current) return
       const map = L.map(node.current, { zoomControl: false }).setView([14.72, -17.46], 12)
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        subdomains: "abcd",
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap · CARTO",
-      }).addTo(map)
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        {
+          maxZoom: 16,
+          attribution: "Carte &copy; Esri",
+        },
+      ).addTo(map)
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 16 },
+      ).addTo(map)
       const group = L.layerGroup().addTo(map)
       mapRef.current = map
       groupRef.current = group

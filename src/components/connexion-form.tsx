@@ -31,21 +31,23 @@ export function ConnexionForm({ next }: { next: string }) {
 
   return (
     <div className="grid min-h-dvh md:grid-cols-[minmax(0,1fr)_28rem]">
-      <aside className="hidden flex-col justify-between bg-accent px-10 py-12 text-accent-foreground md:flex">
-        <SenTrajetMark className="[&_span]:text-accent-foreground [&_span_span]:text-accent-foreground/70" />
+      <aside className="hidden flex-col justify-between border-r border-border bg-background px-10 py-12 text-foreground md:flex">
+        <SenTrajetMark />
         <div className="flex max-w-md flex-col gap-4">
           <p className="font-display text-5xl leading-[1.05]">Sen Trajet.</p>
-          <p className="text-accent-foreground/80">
+          <p className="text-muted-foreground">
             Un compte pour demander une course, réserver un siège, ou publier un départ.
           </p>
         </div>
-        <p className="text-sm text-accent-foreground/70">15 000 F de crédit de bienvenue sur chaque nouveau compte.</p>
+        <p className="text-sm text-muted-foreground">15 000 F de crédit de bienvenue sur chaque nouveau compte.</p>
       </aside>
       <main className="mx-auto flex w-full max-w-lg flex-col gap-8 px-4 py-8">
         <SenTrajetMark className="md:hidden" />
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-4xl">Entrer dans Sen Trajet</h1>
-          <p className="text-muted-foreground">Les deux comptes de démonstration ouvrent l’application sans inscription.</p>
+          <p className="text-muted-foreground">
+            Les deux comptes ci-dessous sont fictifs. Ils servent à montrer Sen Trajet, pas à transporter quelqu’un.
+          </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {([DEMO_ACCOUNTS.rider, DEMO_ACCOUNTS.driver] as const).map((account) => (

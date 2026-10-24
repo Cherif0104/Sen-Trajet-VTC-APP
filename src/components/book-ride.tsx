@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { DemoNote } from "@/components/demo-indicator"
+import { FareCard } from "@/components/fare-card"
 import { FocusBar } from "@/components/focus-bar"
 import { PayPicker } from "@/components/pay-picker"
 import { PlaceField } from "@/components/place-field"
@@ -102,12 +104,18 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col md:grid md:grid-cols-[minmax(0,1fr)_28rem]">
-      <div className="h-[42vh] min-h-56 md:h-dvh">
+    <div className="relative min-h-dvh md:grid md:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="absolute inset-0 z-0 md:relative md:z-auto md:h-dvh">
         <RideMap pickup={pickup} dropoff={dropoff} />
       </div>
-      <div className="flex flex-1 flex-col gap-5 bg-background px-4 py-4 md:h-dvh md:overflow-y-auto">
+      <div className="absolute top-3 left-3 z-30 rounded-full bg-background/95 pr-3 backdrop-blur md:hidden">
         <FocusBar title="Course" />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[72vh] flex-col gap-4 overflow-y-auto rounded-t-[1.75rem] border border-border bg-background px-4 pt-3 pb-6 md:relative md:inset-auto md:z-auto md:max-h-none md:h-dvh md:rounded-none md:border-y-0 md:border-r-0">
+        <div className="mx-auto h-1 w-10 rounded-full bg-border md:hidden" />
+        <div className="hidden md:block">
+          <FocusBar title="Course" />
+        </div>
         <ol className="grid grid-cols-3 gap-2">
           {steps.map((label, index) => (
             <li key={label}>
@@ -115,7 +123,7 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
                 type="button"
                 className={cn(
                   "w-full rounded-full px-2 py-1.5 text-xs",
-                  index === step ? "bg-foreground text-background" : "bg-muted text-muted-foreground",
+                  index === step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                 )}
                 onClick={() => {
                   if (index < step) setStep(index)
@@ -142,7 +150,7 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
                     className="shrink-0 rounded-full border border-border px-3 py-1.5 text-sm"
                     onClick={() => setDropoff(toPoint(place))}
                   >
-                    {place.area ?? place.city}
+                    {place.label}
                   </button>
                 )
               })}
@@ -166,29 +174,33 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
                 <Skeleton className="h-20 w-full rounded-2xl" />
               </div>
             ) : (
-              shownQuotes.map((quote) => (
-                <button
-                  key={quote.category}
-                  type="button"
-                  disabled={!quote.available}
-                  onClick={() => setCategory(quote.category)}
-                  className={cn(
-                    "flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left",
-                    category === quote.category ? "border-foreground bg-card" : "border-border bg-card",
-                    !quote.available && "opacity-60",
-                  )}
-                >
-                  <span>
-                    <span className="block font-medium">{quote.label}</span>
-                    <span className="block text-sm text-muted-foreground">
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {shownQuotes.map((quote) => (
+                  <button
+                    key={quote.category}
+                    type="button"
+                    disabled={!quote.available}
+                    onClick={() => setCategory(quote.category)}
+                    className={cn(
+                      "flex w-36 shrink-0 flex-col gap-1 rounded-2xl border bg-card px-3 py-3 text-left",
+                      category === quote.category ? "border-primary" : "border-border",
+                      !quote.available && "opacity-60",
+                    )}
+                  >
+                    <span className="text-sm font-medium">{quote.label}</span>
+                    <span className="font-display text-2xl tabular-nums text-primary">
+                      {quote.fare ? fcfa(quote.fare) : "—"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
                       {quote.available
-                        ? `${quote.detail}${quote.etaPickupS ? ` · ${formatMinutes(quote.etaPickupS)}` : ""}`
+                        ? quote.etaPickupS
+                          ? formatMinutes(quote.etaPickupS)
+                          : quote.detail
                         : quote.reason}
                     </span>
-                  </span>
-                  <span className="font-medium">{quote.fare ? fcfa(quote.fare) : "—"}</span>
-                </button>
-              ))
+                  </button>
+                ))}
+              </div>
             )}
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
               <span>
@@ -209,16 +221,13 @@ export function BookRide({ fromId, toId }: { fromId?: string; toId?: string }) {
 
         {step === 2 && selected ? (
           <div className="flex flex-col gap-4">
-            <div className="rounded-3xl bg-card px-4 py-4">
-              <p className="text-sm text-muted-foreground">
-                {selected.label}
-                {serene ? " · Trajet Serein" : ""} · {pickup?.label} → {dropoff?.label}
-              </p>
-              <p className="font-display text-4xl">{selected.fare ? fcfa(selected.fare) : "—"}</p>
-              <p className="text-sm text-muted-foreground">
-                Wave, Orange Money et Free Money se confirment sans débit réel dans cette version d’essai.
-              </p>
-            </div>
+            <FareCard
+              eyebrow={`${selected.label}${serene ? " · Trajet Serein" : ""} · ${pickup?.label ?? ""} → ${dropoff?.label ?? ""}`}
+              amount={selected.fare ? fcfa(selected.fare) : "—"}
+              detail={selected.surgeLabel}
+              note="Ce prix est verrouillé. Il ne change plus après la confirmation."
+            />
+            <DemoNote>Wave, Orange Money et Free Money se confirment ici sans débit réel.</DemoNote>
             <PayPicker value={method} onChange={setMethod} balance={me?.balance ?? 0} />
             {method === "wallet" && selected.fare && (me?.balance ?? 0) < selected.fare ? (
               <p className="text-sm text-destructive">Solde insuffisant. Rechargez le portefeuille, ou payez avec Wave.</p>

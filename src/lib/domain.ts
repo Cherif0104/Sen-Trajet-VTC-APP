@@ -79,9 +79,9 @@ export const CATEGORY_ORDER: CategoryId[] = ["eco", "confort", "jakarta", "van"]
 export const AIBD = { lat: 14.6703, lng: -17.0733 }
 
 export const PAY_METHODS: { id: PayMethod; label: string; hint: string }[] = [
-  { id: "wave", label: "Wave", hint: "Confirmé automatiquement" },
-  { id: "orange", label: "Orange Money", hint: "Confirmé automatiquement" },
-  { id: "free", label: "Free Money", hint: "Confirmé automatiquement" },
+  { id: "wave", label: "Wave", hint: "Simulation, sans débit réel" },
+  { id: "orange", label: "Orange Money", hint: "Simulation, sans débit réel" },
+  { id: "free", label: "Free Money", hint: "Simulation, sans débit réel" },
   { id: "wallet", label: "Portefeuille Sen Trajet", hint: "Débit du solde" },
   { id: "cash", label: "Espèces", hint: "Remises au chauffeur" },
 ]

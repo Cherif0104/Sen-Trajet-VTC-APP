@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { FleetBadge } from "@/components/demo-indicator"
 import { FocusBar } from "@/components/focus-bar"
 import { PayPicker } from "@/components/pay-picker"
 import { RideMap } from "@/components/ride-map"
@@ -86,7 +87,7 @@ export function CarpoolDetail({ id }: { id: string }) {
         <div className="rounded-3xl bg-card px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <p className="font-medium">{trip.driver.name}</p>
-            <Badge variant="secondary">{trip.driver.launchFleet ? "Réseau Sen Trajet" : "Indépendant"}</Badge>
+            <FleetBadge launchFleet={trip.driver.launchFleet} />
           </div>
           <p className="text-sm text-muted-foreground">
             {trip.driver.color} {trip.driver.make} {trip.driver.model} · {trip.driver.plate} ·{" "}
