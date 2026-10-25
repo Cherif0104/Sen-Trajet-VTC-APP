@@ -14,6 +14,9 @@ import {
   lineRoute,
   norm,
   pointOnRoute,
+  DRIVER_DOCUMENTS,
+  isDebtBlocked,
+  RIDE_CLASSES,
   paymentReference,
   priceBandError,
   priceRoute,
@@ -256,11 +259,13 @@ async function loadDrivers(sql: Sql, category: CategoryId): Promise<DriverFull[]
   const rows = await sql.query(
     `select d.*, u.name, u.phone, u.rating as user_rating
      from drivers d join users u on u.id = d.user_id
+     left join wallets w on w.user_id = d.user_id
      where d.category = $1 and d.online = true and d.busy = false and d.kyc = 'verified'
+       and (d.bot or coalesce(w.balance_xof, 0) >= -($2::integer))
        and not exists (
          select 1 from rides r where r.status = 'matching' and r.offered_driver_id = d.user_id
        )`,
-    [category],
+    [category, await debtLimitOf(sql)],
   )
   return rows.map((row) => ({
     id: text(row.user_id),
@@ -391,7 +396,19 @@ async function settleRide(sql: Sql, ride: Ride) {
   ])
   await releaseDriver(sql, ride.driverId)
   await notify(sql, ride.riderId, "Course terminée", "Notez le chauffeur pour aider les prochains passagers.", `/app/course/${ride.id}`)
-  await notify(sql, ride.driverId, "Course terminée", "Le montant net est dans votre activité.", "/app/chauffeur")
+  await notify(sql, ride.driverId, "Course terminée", "La commission est passée sur ton solde.", "/app/chauffeur/solde")
+  const limit = await debtLimitOf(sql)
+  const balance = await balanceOf(sql, ride.driverId)
+  if (!ride.bot && isDebtBlocked(balance, limit)) {
+    await sql.query(`update drivers set online = false where user_id = $1 and bot = false`, [ride.driverId])
+    await notify(
+      sql,
+      ride.driverId,
+      "Courses bloquées",
+      `Ta dette de commission dépasse ${limit.toLocaleString("fr-FR")} F. Recharge ton solde pour repasser en ligne.`,
+      "/app/chauffeur/solde",
+    )
+  }
 }
 
 async function acceptRide(sql: Sql, ride: Ride, driver: DriverFull) {
@@ -561,9 +578,11 @@ async function presentRide(sql: Sql, id: string, viewerId: string): Promise<Ride
     driverPoint = null
     const radius = CATEGORIES[ride.category].radiusKm
     const cars = await sql.query(
-      `select lat, lng, heading, bot from drivers
-       where category = $1 and online = true and busy = false and kyc = 'verified'`,
-      [ride.category],
+      `select d.lat, d.lng, d.heading, d.bot from drivers d
+       left join wallets w on w.user_id = d.user_id
+       where d.category = $1 and d.online = true and d.busy = false and d.kyc = 'verified'
+         and (d.bot or coalesce(w.balance_xof, 0) >= -($2::integer))`,
+      [ride.category, await debtLimitOf(sql)],
     )
     nearby = forClients(cars.map((car) => ({ bot: flag(car.bot), lat: num(car.lat), lng: num(car.lng), heading: num(car.heading) })))
       .map((car) => ({ ...car, km: haversineKm(car, ride.pickup) }))
@@ -749,16 +768,7 @@ export async function signup(input: { name: string; email: string; phone: string
       `insert into users (id, email, password_hash, password_salt, name, phone) values ($1,$2,$3,$4,$5,$6)`,
       [id, email, password.hash, password.salt, name, phone],
     )
-    await sql.query(`insert into wallets (user_id, balance_xof) values ($1, 15000)`, [id])
-    await postTx(sql, {
-      userId: id,
-      amount: 15000,
-      type: "welcome",
-      method: "wallet",
-      reference: "BIENVENUE",
-      affects: false,
-    })
-    await sql.query(`update wallets set balance_xof = 15000 where user_id = $1`, [id])
+    await sql.query(`insert into wallets (user_id, balance_xof) values ($1, 0)`, [id])
     return id
   })
 }
@@ -910,38 +920,141 @@ export async function markNotificationsRead(userId: string) {
 
 export async function becomeDriver(
   userId: string,
-  input: { category: string; make: string; model: string; color: string; plate: string; serene: boolean },
+  input: {
+    category: string
+    make: string
+    model: string
+    color: string
+    plate: string
+    serene: boolean
+    year?: number
+    licenseNumber?: string
+    licenseExpiry?: string
+  },
 ) {
   const { normalizePlate } = await import("@/lib/domain")
   const category = categoryOf(input.category)
+  if (!RIDE_CLASSES.includes(category)) throw new ApiError("Choisis Éco, Confort ou Confort+.")
   const plate = normalizePlate(input.plate)
   if (!plate) throw new ApiError("La plaque doit ressembler à DK 1234 AB.")
   if (input.make.trim().length < 2 || input.model.trim().length < 1 || input.color.trim().length < 2) {
-    throw new ApiError("Indiquez la marque, le modèle et la couleur.")
+    throw new ApiError("Indique la marque, le modèle et la couleur.")
   }
+  const year = Math.round(Number(input.year ?? 0))
+  const thisYear = now().getUTCFullYear()
+  if (input.year !== undefined && (year < 1995 || year > thisYear + 1)) {
+    throw new ApiError(`L’année doit être entre 1995 et ${thisYear + 1}.`)
+  }
+  const licenseNumber = (input.licenseNumber ?? "").trim().toUpperCase().slice(0, 40)
+  const licenseExpiry = (input.licenseExpiry ?? "").trim()
+  if (licenseExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(licenseExpiry)) throw new ApiError("Date d’expiration invalide.")
   await withDb(async (sql) => {
     const users = await sql.query(`select phone, name from users where id = $1`, [userId])
     if (!users[0] || text(users[0].phone).length < 8 || text(users[0].name).length < 2) {
-      throw new ApiError("Ajoutez votre nom et un mobile sénégalais avant de passer chauffeur.")
+      throw new ApiError("Ajoute ton nom et un mobile sénégalais avant de passer chauffeur.")
     }
     const clash = await sql.query(`select user_id from drivers where plate = $1 and user_id <> $2`, [plate, userId])
     if (clash[0]) throw new ApiError("Cette plaque est déjà enregistrée.")
-    const existing = await sql.query(`select user_id from drivers where user_id = $1`, [userId])
+    const existing = await sql.query(`select * from drivers where user_id = $1`, [userId])
     const values = [category, input.make.trim(), input.model.trim(), input.color.trim(), plate, CATEGORIES[category].seats, input.serene]
     if (existing[0]) {
+      const row = existing[0]
+      if (text(row.kyc) === "pending") throw new ApiError("Ton dossier est en revue. Attends la réponse.")
       await sql.query(
-        `update drivers set category = $2, make = $3, model = $4, color = $5, plate = $6, seats = $7, serene = $8 where user_id = $1`,
-        [userId, ...values],
+        `update drivers set category = $2, make = $3, model = $4, color = $5, plate = $6, seats = $7, serene = $8,
+           year = $9, license_number = $10, license_expiry = $11
+         where user_id = $1`,
+        [
+          userId,
+          ...values,
+          input.year === undefined ? num(row.year) : year,
+          input.licenseNumber === undefined ? text(row.license_number) : licenseNumber,
+          input.licenseExpiry === undefined ? text(row.license_expiry) : licenseExpiry,
+        ],
       )
     } else {
       await sql.query(
-        `insert into drivers (user_id, category, make, model, color, plate, seats, serene, online, lat, lng, home_lat, home_lng, kyc, bot, acceptance)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,false,14.7165,-17.4678,14.7165,-17.4678,'pending',false,1)`,
-        [userId, ...values],
+        `insert into drivers (user_id, category, make, model, color, plate, seats, serene, online, lat, lng, home_lat, home_lng, kyc, bot, acceptance, year, license_number, license_expiry)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,false,14.7165,-17.4678,14.7165,-17.4678,'draft',false,1,$9,$10,$11)`,
+        [userId, ...values, year, licenseNumber, licenseExpiry],
       )
     }
   })
-  return getMe(userId)
+  return driverProfile(userId)
+}
+
+const DOC_KINDS = DRIVER_DOCUMENTS.map((item) => item.id) as string[]
+
+export async function saveDriverDocument(userId: string, kind: string, dataUrl: string) {
+  if (!DOC_KINDS.includes(kind)) throw new ApiError("Pièce inconnue.")
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) {
+    throw new ApiError("Envoie une photo JPEG ou PNG.")
+  }
+  if (dataUrl.length > 1_600_000) throw new ApiError("Photo trop lourde. Reprends-la de plus loin.")
+  await withDb(async (sql) => {
+    const driver = await sql.query(`select kyc from drivers where user_id = $1`, [userId])
+    if (!driver[0]) throw new ApiError("Commence par le véhicule.")
+    if (text(driver[0].kyc) === "pending") throw new ApiError("Ton dossier est en revue. Attends la réponse.")
+    await sql.query(
+      `insert into driver_documents (user_id, kind, data_url) values ($1,$2,$3)
+       on conflict (user_id, kind) do update set data_url = excluded.data_url, created_at = now()`,
+      [userId, kind, dataUrl],
+    )
+  })
+  return driverProfile(userId)
+}
+
+export async function submitDriver(userId: string) {
+  await withDb(async (sql) => {
+    const rows = await sql.query(`select * from drivers where user_id = $1`, [userId])
+    const driver = rows[0]
+    if (!driver) throw new ApiError("Commence par le véhicule.")
+    const kyc = text(driver.kyc)
+    if (kyc === "verified") throw new ApiError("Ton dossier est déjà validé.")
+    if (kyc === "pending") throw new ApiError("Ton dossier est déjà en revue.")
+    if (num(driver.year) < 1995) throw new ApiError("Ajoute l’année du véhicule.")
+    if (text(driver.license_number).length < 4) throw new ApiError("Ajoute le numéro de ton permis.")
+    const expiry = text(driver.license_expiry)
+    if (!expiry) throw new ApiError("Ajoute la date d’expiration du permis.")
+    if (expiry < dakarDate(now())) throw new ApiError("Ton permis est expiré.")
+    const docs = await sql.query<{ kind: string }>(`select kind from driver_documents where user_id = $1`, [userId])
+    const have = new Set(docs.map((item) => text(item.kind)))
+    const missing = DRIVER_DOCUMENTS.filter((item) => !have.has(item.id))
+    if (missing.length) throw new ApiError(`Il manque : ${missing.map((item) => item.label.toLowerCase()).join(", ")}.`)
+    await sql.query(
+      `update drivers set kyc = 'pending', reject_reason = '', submitted_at = $2, online = false where user_id = $1`,
+      [userId, now().toISOString()],
+    )
+    await notify(sql, userId, "Dossier reçu", "On vérifie tes pièces. Tu reçois la réponse ici.", "/app/chauffeur")
+  })
+  return driverProfile(userId)
+}
+
+export async function driverProfile(userId: string) {
+  return withDb(async (sql) => {
+    const rows = await sql.query(`select * from drivers where user_id = $1`, [userId])
+    const driver = rows[0]
+    const docs = await sql.query<{ kind: string }>(`select kind from driver_documents where user_id = $1`, [userId])
+    return {
+      exists: Boolean(driver),
+      kyc: driver ? text(driver.kyc) : "none",
+      rejectReason: driver ? text(driver.reject_reason) : "",
+      category: driver ? (text(driver.category) as CategoryId) : ("eco" as CategoryId),
+      make: driver ? text(driver.make) : "",
+      model: driver ? text(driver.model) : "",
+      color: driver ? text(driver.color) : "",
+      plate: driver ? text(driver.plate) : "",
+      year: driver ? num(driver.year) : 0,
+      serene: driver ? flag(driver.serene) : false,
+      licenseNumber: driver ? text(driver.license_number) : "",
+      licenseExpiry: driver ? text(driver.license_expiry) : "",
+      documents: docs.map((item) => text(item.kind)),
+    }
+  })
+}
+
+async function debtLimitOf(sql: Sql) {
+  return (await loadTariff(sql)).debtLimit
 }
 
 export async function topup(userId: string, amount: number, method: string) {
@@ -1212,8 +1325,15 @@ export async function driverDesk(userId: string) {
       [userId, start],
     )
     const fresh = await driverById(sql, userId)
+    const extra = await sql.query(`select reject_reason from drivers where user_id = $1`, [userId])
+    const balance = await balanceOf(sql, userId)
+    const debtLimit = await debtLimitOf(sql)
     return {
       kyc: fresh?.kyc ?? "pending",
+      rejectReason: text(extra[0]?.reject_reason),
+      balance,
+      debtLimit,
+      blocked: isDebtBlocked(balance, debtLimit),
       online: fresh?.online ?? false,
       vehicle: fresh ? `${fresh.color} ${fresh.make} ${fresh.model}` : "",
       plate: fresh?.plate ?? "",
@@ -1232,6 +1352,12 @@ export async function setDriverOnline(userId: string, online: boolean) {
     if (!driver) throw new ApiError("Complétez votre véhicule pour passer en ligne.")
     if (online && driver.kyc !== "verified") {
       throw new ApiError("Ton dossier est en revue. Tu passes en ligne une fois qu’il est validé.")
+    }
+    if (online && !driver.bot) {
+      const limit = await debtLimitOf(sql)
+      if (isDebtBlocked(await balanceOf(sql, userId), limit)) {
+        throw new ApiError(`Ta dette de commission dépasse ${limit.toLocaleString("fr-FR")} F. Recharge ton solde pour repasser en ligne.`)
+      }
     }
     const users = await sql.query(`select rating, rating_count from users where id = $1`, [userId])
     if (online && num(users[0]?.rating) < 3.8 && num(users[0]?.rating_count) >= 6) {
@@ -1593,11 +1719,27 @@ export async function adminDesk(userId: string) {
        order by created_at desc limit 30`,
     )
     const drivers = await sql.query(
-      `select d.user_id, d.plate, d.make, d.model, d.color, d.category, u.name, u.phone
+      `select d.user_id, d.plate, d.make, d.model, d.color, d.category, d.year, d.license_number, d.license_expiry,
+         d.submitted_at, u.name, u.phone, u.email
        from drivers d join users u on u.id = d.user_id
        where d.kyc = 'pending' and d.bot = false
-       order by u.name`,
+       order by d.submitted_at nulls last, u.name`,
     )
+    const pendingIds = drivers.map((row) => text(row.user_id))
+    const documents = pendingIds.length
+      ? await sql.query(
+          `select user_id, kind, data_url from driver_documents
+           where user_id in (${pendingIds.map((_, index) => `$${index + 1}`).join(",")})`,
+          pendingIds,
+        )
+      : []
+    const fleet = await sql.query(
+      `select d.user_id, d.plate, d.category, d.online, u.name, u.phone, coalesce(w.balance_xof, 0) as balance
+       from drivers d join users u on u.id = d.user_id left join wallets w on w.user_id = d.user_id
+       where d.kyc = 'verified' and d.bot = false
+       order by coalesce(w.balance_xof, 0) asc, u.name limit 50`,
+    )
+    const debtLimit = await debtLimitOf(sql)
     const disputes = await sql.query(
       `select id, pickup_label, dropoff_label, cancel_reason, cancelled_by, fare_xof, payment_method
        from rides where status = 'cancelled'
@@ -1618,8 +1760,26 @@ export async function adminDesk(userId: string) {
         name: text(row.name),
         phone: text(row.phone),
         plate: text(row.plate),
+        email: text(row.email),
         vehicle: `${text(row.color)} ${text(row.make)} ${text(row.model)}`,
+        year: num(row.year),
         category: text(row.category),
+        licenseNumber: text(row.license_number),
+        licenseExpiry: text(row.license_expiry),
+        submittedAt: iso(row.submitted_at),
+        documents: documents
+          .filter((doc) => text(doc.user_id) === text(row.user_id))
+          .map((doc) => ({ kind: text(doc.kind), dataUrl: text(doc.data_url) })),
+      })),
+      fleet: fleet.map((row) => ({
+        id: text(row.user_id),
+        name: text(row.name),
+        phone: text(row.phone),
+        plate: text(row.plate),
+        category: text(row.category),
+        online: flag(row.online),
+        balance: num(row.balance),
+        blocked: isDebtBlocked(num(row.balance), debtLimit),
       })),
       tariff: await loadTariff(sql),
       disputes: disputes.map((row) => ({
@@ -1639,8 +1799,43 @@ export async function adminAct(
   userId: string,
   action: string,
   targetId: string,
-  extra?: { tariff?: unknown },
+  extra?: { tariff?: unknown; reason?: string; amount?: number },
 ) {
+  if (action === "reject") {
+    const reason = (extra?.reason ?? "").trim().slice(0, 240)
+    if (reason.length < 5) throw new ApiError("Écris le motif du refus pour le chauffeur.")
+    await withDb(async (sql) => {
+      await assertAdmin(sql, userId)
+      const updated = await sql.query(
+        `update drivers set kyc = 'rejected', reject_reason = $2 where user_id = $1 and kyc = 'pending' returning user_id`,
+        [targetId, reason],
+      )
+      if (!updated[0]) throw new ApiError("Ce dossier n’est plus en revue.")
+      await notify(sql, targetId, "Dossier à corriger", reason, "/chauffeur/inscription")
+    })
+    return adminDesk(userId)
+  }
+  if (action === "deposit") {
+    const amount = Math.round(Number(extra?.amount))
+    if (!Number.isFinite(amount) || amount < 500 || amount > 500_000) {
+      throw new ApiError("Montant entre 500 et 500 000 F.")
+    }
+    await withDb(async (sql) => {
+      await assertAdmin(sql, userId)
+      const driver = await sql.query(`select user_id from drivers where user_id = $1 and bot = false`, [targetId])
+      if (!driver[0]) throw new ApiError("Chauffeur introuvable.")
+      await postTx(sql, {
+        userId: targetId,
+        amount,
+        type: "deposit",
+        method: "cash",
+        reference: `AGENCE-${dakarDate(now())}`,
+        affects: true,
+      })
+      await notify(sql, targetId, "Solde rechargé", `${amount.toLocaleString("fr-FR")} F ajoutés à ton solde.`, "/app/chauffeur/solde")
+    })
+    return adminDesk(userId)
+  }
   if (action === "tariff") {
     const tariff = sanitizeTariff(extra?.tariff)
     await withDb(async (sql) => {
@@ -1661,7 +1856,8 @@ export async function adminAct(
       [targetId],
     )
     if (!updated[0]) throw new ApiError("Ce dossier n’est plus en revue.")
-    await notify(sql, targetId, "Véhicule validé", "Tu peux passer en ligne.", "/app/chauffeur")
+    await sql.query(`update drivers set reject_reason = '' where user_id = $1`, [targetId])
+    await notify(sql, targetId, "Dossier validé", "Bienvenue chez Sen Trajet. Tu peux passer en ligne.", "/app/chauffeur")
   })
   return adminDesk(userId)
 }

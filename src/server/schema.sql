@@ -183,3 +183,19 @@ create table if not exists settings (
 );
 
 alter table settings enable row level security;
+
+alter table drivers add column if not exists year integer not null default 0;
+alter table drivers add column if not exists license_number text not null default '';
+alter table drivers add column if not exists license_expiry text not null default '';
+alter table drivers add column if not exists reject_reason text not null default '';
+alter table drivers add column if not exists submitted_at timestamptz;
+
+create table if not exists driver_documents (
+  user_id text not null references users(id),
+  kind text not null,
+  data_url text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, kind)
+);
+
+alter table driver_documents enable row level security;

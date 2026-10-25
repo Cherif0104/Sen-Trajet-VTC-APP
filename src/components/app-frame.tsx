@@ -1,26 +1,47 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ArmchairIcon, CarIcon, HouseIcon, UserRoundIcon } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { ArmchairIcon, CarIcon, HouseIcon, UserRoundIcon, WalletIcon } from "lucide-react"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
-import { buttonVariants } from "@/components/ui/button"
 import { useMe } from "@/components/use-me"
 import { cn } from "cn"
 
-const links = [
+const riderLinks = [
   { href: "/app", label: "Accueil", icon: HouseIcon },
   { href: "/app/activite", label: "Courses", icon: CarIcon },
   { href: "/app/covoiturage", label: "Sièges", icon: ArmchairIcon },
   { href: "/app/compte", label: "Compte", icon: UserRoundIcon },
 ]
 
+const driverLinks = [
+  { href: "/app/chauffeur", label: "Courses", icon: CarIcon },
+  { href: "/app/chauffeur/solde", label: "Solde", icon: WalletIcon },
+  { href: "/app/chauffeur/profil", label: "Profil", icon: UserRoundIcon },
+]
+
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const focus = pathname.startsWith("/app/course")
   const mapHome = pathname === "/app"
   const { me } = useMe()
+  const driver = Boolean(me?.driver) && me?.role !== "admin"
+  const inDriverSpace = pathname.startsWith("/app/chauffeur")
+  const misplaced = me != null && !focus && driver !== inDriverSpace
+
+  useEffect(() => {
+    if (!misplaced) return
+    router.replace(driver ? "/app/chauffeur" : "/app")
+  }, [misplaced, driver, router])
+
   if (focus) return <div className="min-h-dvh bg-background">{children}</div>
+  if (misplaced) return <div className="min-h-dvh bg-background" />
+
+  const links = driver
+    ? driverLinks
+    : riderLinks.filter((link) => link.href !== "/app/covoiturage" || me?.features.sieges !== false)
 
   return (
     <div className="min-h-dvh bg-background">
@@ -31,24 +52,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             mapHome && "hidden",
           )}
         >
-          <Link href="/app" aria-label="Accueil Sen Trajet">
+          <Link href={driver ? "/app/chauffeur" : "/app"} aria-label="Accueil Sen Trajet">
             <SenTrajetMark />
           </Link>
-          {me?.driver ? (
-            <Link
-              href={pathname.startsWith("/app/chauffeur") ? "/app" : "/app/chauffeur"}
-              className={buttonVariants({ variant: "secondary", size: "sm" })}
-            >
-              {pathname.startsWith("/app/chauffeur") ? "Mode passager" : "Mode chauffeur"}
-            </Link>
+          {driver ? (
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">Chauffeur</span>
           ) : null}
         </header>
         <div className={cn("flex flex-1 flex-col", mapHome && "relative min-h-0")}>{children}</div>
         <nav className="sticky bottom-0 z-30 mt-auto border-t border-border bg-background/95 backdrop-blur">
-          <ul className={`mx-auto grid max-w-lg ${me?.features.sieges === false ? "grid-cols-3" : "grid-cols-4"}`}>
-            {links.filter((link) => link.href !== "/app/covoiturage" || me?.features.sieges !== false).map((link) => {
-              const active = link.href === "/app" ? pathname === "/app" : pathname.startsWith(link.href)
+          <ul className={cn("mx-auto grid max-w-lg", links.length === 3 ? "grid-cols-3" : "grid-cols-4")}>
+            {links.map((link) => {
+              const active =
+                link.href === "/app" || link.href === "/app/chauffeur"
+                  ? pathname === link.href
+                  : pathname.startsWith(link.href)
               const Icon = link.icon
+              const inbox = link.href === "/app/compte" || link.href === "/app/chauffeur/profil"
               return (
                 <li key={link.href}>
                   <Link
@@ -67,7 +87,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                       <Icon className="size-4" />
                     </span>
                     <span>{link.label}</span>
-                    {link.href === "/app/compte" && me && me.unread > 0 ? (
+                    {inbox && me && me.unread > 0 ? (
                       <span className="absolute top-2 right-6 size-2 rounded-full bg-primary">
                         <span className="sr-only">{me.unread} notifications</span>
                       </span>

@@ -8,7 +8,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
   return handle(async () => {
-    const body = (await request.json()) as { action?: string; userId?: string; tariff?: unknown }
-    return adminAct(await requireUserId(), body.action ?? "", body.userId ?? "", { tariff: body.tariff })
+    const body = (await request.json()) as {
+      action?: string
+      userId?: string
+      tariff?: unknown
+      reason?: string
+      amount?: number
+    }
+    return adminAct(await requireUserId(), body.action ?? "", body.userId ?? "", {
+      tariff: body.tariff,
+      reason: body.reason,
+      amount: body.amount,
+    })
   })
 }

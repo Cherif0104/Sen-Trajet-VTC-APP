@@ -14,7 +14,7 @@ export function PayPicker({
   onChange: (method: PayMethod) => void
   balance: number
 }) {
-  const live = PAY_METHODS.filter((method) => method.live)
+  const live = PAY_METHODS.filter((method) => method.live && (method.id !== "wallet" || balance > 0))
   const soon = PAY_METHODS.filter((method) => !method.live)
   return (
     <FieldSet>

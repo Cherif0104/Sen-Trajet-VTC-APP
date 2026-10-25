@@ -10,19 +10,22 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/client"
+import type { MeDTO } from "@/lib/dto"
 
 export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
   const router = useRouter()
   const [mode, setMode] = useState<"login" | "signup">(tab === "signup" ? "signup" : "login")
   const [busy, setBusy] = useState(false)
-  const destination = next.startsWith("/app") ? next : "/app"
+  const destination = next.startsWith("/app") || next.startsWith("/chauffeur/") ? next : "/app"
   const signup = mode === "signup"
 
   async function enter(path: string, body: Record<string, string>) {
     setBusy(true)
     try {
       await api(path, { method: "POST", body: JSON.stringify(body) })
-      router.replace(destination)
+      const me = await api<MeDTO>("/api/me")
+      const home = me.role === "admin" ? "/app/admin" : me.driver ? "/app/chauffeur" : "/app"
+      router.replace(destination === "/app" ? home : destination)
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Connexion impossible.")
@@ -102,6 +105,9 @@ export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
                 <button type="button" className="py-2 text-sm font-medium text-white/80" onClick={() => setMode("login")}>
                   J’ai déjà un compte
                 </button>
+                <Link href="/chauffeur/inscription" className="py-1 text-center text-sm font-medium text-accent">
+                  Tu conduis ? Inscris-toi comme chauffeur
+                </Link>
               </div>
             </form>
           ) : (
@@ -133,6 +139,9 @@ export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
                 <button type="button" className="py-2 text-sm font-medium text-white/80" onClick={() => setMode("signup")}>
                   Créer un compte
                 </button>
+                <Link href="/chauffeur/inscription" className="py-1 text-center text-sm font-medium text-accent">
+                  Tu conduis ? Inscris-toi comme chauffeur
+                </Link>
               </div>
             </form>
           )}

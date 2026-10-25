@@ -10,7 +10,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/client"
-import { CATEGORIES, RIDE_CLASSES, type CategoryId, type ClientFeatures } from "@/lib/domain"
+import type { ClientFeatures } from "@/lib/domain"
 import type { MeDTO } from "@/lib/dto"
 import type { GeoPoint } from "@/lib/places"
 import { fcfa, formatWhen, txLabel } from "@/lib/format"
@@ -21,7 +21,6 @@ export default function AccountPage() {
   const router = useRouter()
   const { me, loading, error, reload } = useMe()
   const [busy, setBusy] = useState(false)
-  const [sereneDriver, setSereneDriver] = useState(false)
 
   async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -37,31 +36,6 @@ export default function AccountPage() {
       await reload()
     } catch (caught) {
       toast.error(caught instanceof Error ? caught.message : "Enregistrement impossible.")
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function become(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    setBusy(true)
-    try {
-      await api<MeDTO>("/api/me/driver", {
-        method: "POST",
-        body: JSON.stringify({
-          category: data.get("category"),
-          make: data.get("make"),
-          model: data.get("model"),
-          color: data.get("color"),
-          plate: data.get("plate"),
-          serene: data.get("serene") === "on",
-        }),
-      })
-      toast.success("Dossier envoyé. On te prévient.")
-      await reload()
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Vérification impossible.")
     } finally {
       setBusy(false)
     }
@@ -90,20 +64,11 @@ export default function AccountPage() {
         </p>
       </div>
 
-      <section className="flex flex-col gap-3 rounded-3xl border border-border bg-card px-4 py-4">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Solde</p>
-            <p className="font-display text-5xl tabular-nums">{fcfa(me.balance)}</p>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground">Wave arrive. Pour l’instant, espèces ou solde.</p>
-        {me.role === "admin" ? (
-          <Link href="/app/admin" className={buttonVariants({ size: "lg" })}>
-            Exploitation
-          </Link>
-        ) : null}
-      </section>
+      {me.role === "admin" ? (
+        <Link href="/app/admin" className={buttonVariants({ size: "lg" })}>
+          Exploitation
+        </Link>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-2xl">Profil</h2>
@@ -124,44 +89,15 @@ export default function AccountPage() {
 
       <ClientSpace me={me} busy={busy} setBusy={setBusy} reload={reload} />
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-2xl">Véhicule</h2>
-        {me.driver ? (
-          <div className="flex flex-col gap-3 rounded-3xl bg-secondary px-4 py-4 text-secondary-foreground">
-            <p className="font-medium">
-              {CATEGORIES[me.driver.category].label} · {me.driver.color} {me.driver.make} {me.driver.model}
-            </p>
-            <p className="text-sm">
-              {me.driver.plate}
-              {me.driver.serene ? " · Trajet Serein" : ""} ·{" "}
-              {me.driver.kyc === "verified" ? (me.driver.online ? "en ligne" : "hors ligne") : "dossier en revue"}
-            </p>
-            <Link href="/app/chauffeur" className={buttonVariants({ size: "lg" })}>
-              Ouvrir le poste chauffeur
-            </Link>
-          </div>
-        ) : (
-          <details className="rounded-3xl border border-border px-4 py-3">
-          <summary className="cursor-pointer font-medium">Devenir chauffeur</summary>
-          <form className="mt-3 flex flex-col gap-3" onSubmit={(event) => void become(event)}>
-            <p className="text-sm text-muted-foreground">Plaque du type DK 1234 AB. On valide le dossier avant la mise en ligne.</p>
-            <CategoryField />
-            <Input name="make" size="lg" placeholder="Marque" required />
-            <Input name="model" size="lg" placeholder="Modèle" required />
-            <Input name="color" size="lg" placeholder="Couleur" required />
-            <Input name="plate" size="lg" placeholder="DK 1234 AB" required />
-            <input type="hidden" name="serene" value={sereneDriver ? "on" : ""} />
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-border px-4 py-3">
-              <span>Trajet Serein</span>
-              <Switch checked={sereneDriver} onCheckedChange={setSereneDriver} aria-label="Trajet Serein" />
-            </div>
-            <Button type="submit" size="lg" disabled={busy}>
-              Envoyer le dossier
-            </Button>
-          </form>
-          </details>
-        )}
-      </section>
+      {me.role !== "admin" ? (
+        <Link href="/chauffeur/inscription" className="flex items-center justify-between gap-3 rounded-3xl bg-card px-4 py-4">
+          <span>
+            <span className="block font-medium">Tu as une voiture ?</span>
+            <span className="text-sm text-muted-foreground">Inscris-toi comme chauffeur Sen Trajet.</span>
+          </span>
+          <span className="text-sm font-medium text-accent">Commencer</span>
+        </Link>
+      ) : null}
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
@@ -191,9 +127,9 @@ export default function AccountPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-2xl">Mouvements</h2>
+        <h2 className="font-display text-2xl">Paiements</h2>
         {me.transactions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun mouvement.</p>
+          <p className="text-sm text-muted-foreground">Aucun paiement pour l’instant.</p>
         ) : (
           me.transactions.map((item) => (
             <div key={item.id} className="flex items-center justify-between rounded-2xl bg-muted px-4 py-3 text-sm">
@@ -328,28 +264,5 @@ function ClientSpace({
         </Button>
       </form>
     </section>
-  )
-}
-
-function CategoryField() {
-  const [category, setCategory] = useState<CategoryId>("eco")
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      <input type="hidden" name="category" value={category} />
-      {RIDE_CLASSES.map((id) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => setCategory(id)}
-          className={cn(
-            "rounded-2xl border px-3 py-3 text-left text-sm",
-            category === id ? "border-foreground bg-card" : "border-border",
-          )}
-        >
-          <span className="block font-medium">{CATEGORIES[id].label}</span>
-          <span className="text-muted-foreground">{CATEGORIES[id].detail}</span>
-        </button>
-      ))}
-    </div>
   )
 }

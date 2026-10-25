@@ -101,6 +101,19 @@ export const PAY_METHODS: { id: PayMethod; label: string; hint: string; live: bo
   { id: "free", label: "Free Money", hint: "Bientôt", live: false },
 ]
 
+export const DRIVER_DOCUMENTS = [
+  { id: "selfie", label: "Ta photo", hint: "Visage dégagé, sans lunettes de soleil." },
+  { id: "permis", label: "Permis de conduire", hint: "Recto, lisible, pas expiré." },
+  { id: "carte_grise", label: "Carte grise", hint: "Celle du véhicule déclaré." },
+  { id: "vehicule", label: "Le véhicule", hint: "De face, plaque lisible." },
+] as const
+
+export type DriverDocKind = (typeof DRIVER_DOCUMENTS)[number]["id"]
+
+export function isDebtBlocked(balance: number, debtLimit: number) {
+  return balance < -debtLimit
+}
+
 export function roundTo(value: number, step: number) {
   return Math.round(value / step) * step
 }
@@ -191,6 +204,7 @@ export type Tariff = {
   confort: ClassRate
   confort_plus: ClassRate
   airportFee: number
+  debtLimit: number
   corridors: { a: string; b: string; price: number }[]
 }
 
@@ -214,6 +228,7 @@ export function defaultTariff(): Tariff {
     confort: classRate("confort"),
     confort_plus: classRate("confort_plus"),
     airportFee: 1500,
+    debtLimit: 5000,
     corridors: corridors(),
   }
 }
@@ -246,6 +261,7 @@ export function sanitizeTariff(value: unknown): Tariff {
     confort: rate("confort"),
     confort_plus: rate("confort_plus"),
     airportFee: Math.round(money(raw.airportFee, base.airportFee, 20_000)),
+    debtLimit: Math.round(money(raw.debtLimit, base.debtLimit, 200_000)),
     corridors: source
       .slice(0, 20)
       .map((item) => ({

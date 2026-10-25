@@ -5,6 +5,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { Check, CircleAlert, Clock } from "lucide-react"
 import { api } from "@/lib/client"
 import { CATEGORIES } from "@/lib/domain"
 import type { RideDTO } from "@/lib/dto"
@@ -12,6 +13,10 @@ import { fcfa, formatMinutes } from "@/lib/format"
 
 type Desk = {
   kyc: string
+  rejectReason: string
+  balance: number
+  debtLimit: number
+  blocked: boolean
   online: boolean
   vehicle: string
   plate: string
@@ -87,8 +92,8 @@ export default function DriverPage() {
       <div className="flex flex-col gap-4 px-4 py-8">
         <h1 className="font-display text-4xl">Poste chauffeur</h1>
         <p className="text-muted-foreground">{error}</p>
-        <Link href="/app/compte" className={buttonVariants({ size: "xl" })}>
-          Activer mon véhicule
+        <Link href="/chauffeur/inscription" className={buttonVariants({ size: "xl" })}>
+          M’inscrire comme chauffeur
         </Link>
       </div>
     )
@@ -97,6 +102,8 @@ export default function DriverPage() {
   if (!desk) {
     return <p className="px-4 py-8 text-muted-foreground">Ouverture du poste…</p>
   }
+
+  if (desk.kyc !== "verified") return <DossierState desk={desk} />
 
   const left = desk.offer?.offerExpiresAt
     ? Math.max(0, Math.ceil((new Date(desk.offer.offerExpiresAt).getTime() - now) / 1000))
@@ -107,7 +114,7 @@ export default function DriverPage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-4xl">
-            {desk.kyc !== "verified" ? "Dossier en revue" : desk.online ? "En ligne" : "Hors ligne"}
+            {desk.online ? "En ligne" : "Hors ligne"}
           </h1>
           <p className="text-sm text-muted-foreground">
             {CATEGORIES[desk.category].label} · {desk.vehicle} · {desk.plate}
@@ -115,18 +122,33 @@ export default function DriverPage() {
         </div>
         <Switch
           checked={desk.online}
-          disabled={busy || desk.kyc !== "verified"}
+          disabled={busy || (desk.blocked && !desk.online)}
           onCheckedChange={(checked) => void act(checked ? "online" : "offline")}
         />
       </div>
-      {desk.kyc !== "verified" ? (
-        <p className="text-sm text-muted-foreground">On vérifie le véhicule. La mise en ligne attend la validation.</p>
+      {desk.blocked ? (
+        <Link
+          href="/app/chauffeur/solde"
+          className="flex gap-3 rounded-3xl border border-accent/60 bg-accent/10 px-4 py-4 text-sm"
+        >
+          <CircleAlert className="mt-0.5 size-5 shrink-0 text-accent" />
+          <span>
+            <span className="block font-medium">Courses bloquées</span>
+            Tu dois {fcfa(-desk.balance)} de commission, au-delà du plafond de {fcfa(desk.debtLimit)}. Recharge ton solde
+            pour repasser en ligne.
+          </span>
+        </Link>
+      ) : !desk.online ? (
+        <p className="text-sm text-muted-foreground">Passe en ligne pour recevoir les demandes autour de toi.</p>
       ) : null}
 
       <div className="rounded-3xl border border-border bg-card px-5 py-4">
         <p className="text-sm text-muted-foreground">Net du jour, heure de Dakar</p>
         <p className="font-display text-4xl tabular-nums">{fcfa(desk.earningsToday)}</p>
-        <p className="mt-2 text-sm text-muted-foreground">Espèces et solde. Wave n’est pas branché.</p>
+        <Link href="/app/chauffeur/solde" className="mt-2 flex justify-between text-sm text-muted-foreground">
+          <span>Solde chauffeur</span>
+          <span className={desk.balance < 0 ? "text-accent tabular-nums" : "tabular-nums"}>{fcfa(desk.balance)}</span>
+        </Link>
       </div>
 
       {desk.offer ? (
@@ -198,6 +220,59 @@ export default function DriverPage() {
           ))}
         </ul>
       </section>
+    </div>
+  )
+}
+
+function DossierState({ desk }: { desk: Desk }) {
+  if (desk.kyc === "pending") {
+    return (
+      <div className="flex flex-col gap-5 px-4 py-6">
+        <span className="flex size-14 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <Clock className="size-7" />
+        </span>
+        <div>
+          <h1 className="font-display text-4xl">Dossier en revue</h1>
+          <p className="mt-2 text-muted-foreground">
+            L’équipe Sen Trajet vérifie tes pièces. Tu reçois une notification dès que c’est validé, puis tu passes en ligne.
+          </p>
+        </div>
+        <ul className="flex flex-col gap-2 rounded-3xl bg-card px-4 py-4 text-sm">
+          {["Compte créé", "Véhicule déclaré", "Permis et photos envoyés"].map((label) => (
+            <li key={label} className="flex items-center gap-3">
+              <Check className="size-4 text-emerald-400" /> {label}
+            </li>
+          ))}
+          <li className="flex items-center gap-3 text-muted-foreground">
+            <Clock className="size-4" /> Validation par l’équipe
+          </li>
+        </ul>
+        <p className="text-sm text-muted-foreground">
+          {CATEGORIES[desk.category].label} · {desk.vehicle} · {desk.plate}
+        </p>
+      </div>
+    )
+  }
+  const rejected = desk.kyc === "rejected"
+  return (
+    <div className="flex flex-col gap-5 px-4 py-6">
+      <div>
+        <h1 className="font-display text-4xl">{rejected ? "Dossier à corriger" : "Termine ton dossier"}</h1>
+        <p className="mt-2 text-muted-foreground">
+          {rejected
+            ? "L’équipe a besoin d’une correction avant de valider."
+            : "Il manque des informations avant que l’équipe puisse vérifier ton dossier."}
+        </p>
+      </div>
+      {rejected && desk.rejectReason ? (
+        <div className="flex gap-3 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm">
+          <CircleAlert className="mt-0.5 size-4 shrink-0 text-accent" />
+          <p>{desk.rejectReason}</p>
+        </div>
+      ) : null}
+      <Link href="/chauffeur/inscription" className={buttonVariants({ size: "xl" })}>
+        {rejected ? "Corriger mon dossier" : "Reprendre l’inscription"}
+      </Link>
     </div>
   )
 }

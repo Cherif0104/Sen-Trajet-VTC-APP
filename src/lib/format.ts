@@ -86,6 +86,7 @@ export function txLabel(type: string) {
   const labels: Record<string, string> = {
     welcome: "Crédit de bienvenue",
     topup: "Recharge",
+    deposit: "Dépôt reçu en agence",
     ride_payment: "Paiement course",
     ride_earning: "Gain course",
     commission: "Commission espèces",

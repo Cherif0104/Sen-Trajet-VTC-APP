@@ -165,10 +165,10 @@ export function WelcomeStory({ brushClass }: { brushClass: string }) {
             </div>
             {last ? (
               <Link
-                href="/connexion?tab=signup"
+                href={role === "chauffeur" ? "/chauffeur/inscription" : "/connexion?tab=signup"}
                 className="grid h-12 place-items-center rounded-full bg-[#FF4D2A] text-base font-semibold text-white"
               >
-                Je me lance
+                {role === "chauffeur" ? "Devenir chauffeur" : "Je me lance"}
               </Link>
             ) : (
               <button
