@@ -1,9 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { Rubik_Wet_Paint } from "next/font/google"
 import { ConnexionForm } from "@/components/connexion-form"
-
-const brush = Rubik_Wet_Paint({ weight: "400", subsets: ["latin"] })
 
 export const metadata: Metadata = { title: "Connexion" }
 
@@ -21,5 +18,5 @@ export default function ConnexionPage({
 
 async function ConnexionGate({ searchParams }: { searchParams: Promise<{ next?: string; tab?: string }> }) {
   const params = await searchParams
-  return <ConnexionForm next={params.next ?? "/app"} tab={params.tab} brushClass={brush.className} />
+  return <ConnexionForm next={params.next ?? "/app"} tab={params.tab} />
 }
