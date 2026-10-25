@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="sen-trajet-squircle"><rect width="512" height="512" rx="118"/></clipPath>
+  </defs>
+  <g clip-path="url(#sen-trajet-squircle)">
+    <rect width="512" height="512" fill="#FF4D2A"/>
+    <path d="M-48 368C148 392 156 124 292 152C400 174 412 300 424 328" fill="none" stroke="#FFFFFF" stroke-width="64" stroke-linecap="round"/>
+    <circle cx="424" cy="328" r="56" fill="#FFFFFF"/>
+  </g>
+</svg>

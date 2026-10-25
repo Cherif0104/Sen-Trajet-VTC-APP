@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 176">
+  <svg x="0" y="16" width="144" height="144" viewBox="0 0 512 512">
+    <defs>
+      <clipPath id="logo-squircle"><rect width="512" height="512" rx="118"/></clipPath>
+    </defs>
+    <g clip-path="url(#logo-squircle)">
+      <rect width="512" height="512" fill="#FF4D2A"/>
+      <path d="M-48 368C148 392 156 124 292 152C400 174 412 300 424 328" fill="none" stroke="#FFFFFF" stroke-width="64" stroke-linecap="round"/>
+      <circle cx="424" cy="328" r="56" fill="#FFFFFF"/>
+    </g>
+  </svg>
+  <text x="176" y="92" fill="#121417" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="700">Sen Trajet</text>
+  <text x="180" y="128" fill="#0E8C78" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650" letter-spacing="3.5">SÉNÉGAL</text>
+</svg>
