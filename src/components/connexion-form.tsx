@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api } from "@/lib/client"
 
-export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
+export function ConnexionForm({ next, tab, brushClass }: { next: string; tab?: string; brushClass: string }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const destination = next.startsWith("/app") ? next : "/app"
@@ -30,16 +31,40 @@ export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
 
   return (
     <div className="min-h-dvh bg-background">
-      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-5 py-8">
-        <SenTrajetMark />
+      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col">
+        <div className="relative h-48">
+          <Image
+            src="/welcome/client.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 32rem) 32rem, 100vw"
+            className="object-cover object-[center_28%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background" />
+          <div className="absolute top-4 left-4 rounded-full bg-white px-3 py-2 text-[#121417]">
+            <SenTrajetMark onLight />
+          </div>
+          <p
+            className={`${brushClass} absolute bottom-2 left-5 -rotate-3 text-5xl leading-none text-[#FF4D2A]`}
+            style={{ WebkitTextStroke: "5px #fff", paintOrder: "stroke fill" }}
+          >
+            ON Y VA
+          </p>
+        </div>
+        <div className="flex flex-1 flex-col gap-5 px-5 pt-2 pb-8">
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl">Connexion</h1>
-          <p className="text-muted-foreground">E-mail et mot de passe. Le prix se voit avant de monter.</p>
+          <h1 className="font-display text-4xl">Le prix, avant.</h1>
+          <p className="text-muted-foreground">E-mail et mot de passe. Tu vois le montant avant de monter.</p>
         </div>
         <Tabs defaultValue={tab === "signup" ? "signup" : "login"}>
-          <TabsList className="w-full">
-            <TabsTrigger value="login">Connexion</TabsTrigger>
-            <TabsTrigger value="signup">Créer un compte</TabsTrigger>
+          <TabsList className="h-12 w-full rounded-full p-1">
+            <TabsTrigger value="login" className="rounded-full">
+              Connexion
+            </TabsTrigger>
+            <TabsTrigger value="signup" className="rounded-full">
+              Créer un compte
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="login" className="pt-4">
             <AuthFields
@@ -52,6 +77,7 @@ export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
             <SignupFields busy={busy} onSubmit={(values) => enter("/api/auth/signup", values)} />
           </TabsContent>
         </Tabs>
+        </div>
       </main>
     </div>
   )

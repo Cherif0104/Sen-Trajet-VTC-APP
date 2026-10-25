@@ -116,7 +116,7 @@ export function WelcomeStory({ brushClass }: { brushClass: string }) {
           </p>
           <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-4 pt-4">
             <div className="rounded-full bg-white px-3 py-2 text-[#121417]">
-              <SenTrajetMark />
+              <SenTrajetMark onLight />
             </div>
             <Link
               href="/connexion"

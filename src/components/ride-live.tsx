@@ -137,7 +137,7 @@ export function RideLive({ id }: { id: string }) {
   const terminal = ride.status === "completed" || ride.status === "cancelled"
 
   return (
-    <div className={cn("relative min-h-dvh", terminal && "bg-white")}>
+    <div className={cn("relative min-h-dvh", terminal && "bg-background")}>
       {terminal ? null : (
         <div className="absolute inset-0 z-0">
           <RideMap pickup={ride.pickup} dropoff={ride.dropoff} driver={ride.driverPoint} route={ride.route} />
@@ -145,10 +145,10 @@ export function RideLive({ id }: { id: string }) {
       )}
       <div
         className={cn(
-          "z-20 flex flex-col gap-4 bg-white px-4",
+          "z-20 flex flex-col gap-4 bg-background px-4",
           terminal
             ? "mx-auto min-h-dvh w-full max-w-lg py-6"
-            : "absolute inset-x-0 bottom-0 max-h-[74vh] overflow-y-auto rounded-t-[1.75rem] pt-3 pb-6 shadow-[0_-12px_40px_rgba(18,20,23,0.08)]",
+            : "absolute inset-x-0 bottom-0 max-h-[74vh] overflow-y-auto rounded-t-[1.75rem] pt-3 pb-6 shadow-[0_-16px_40px_rgba(0,0,0,0.28)]",
         )}
       >
         {terminal ? null : <div className="mx-auto h-1 w-10 rounded-full bg-border" />}

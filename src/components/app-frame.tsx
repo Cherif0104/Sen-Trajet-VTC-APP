@@ -54,11 +54,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   <Link
                     href={link.href}
                     className={cn(
-                      "relative flex flex-col items-center gap-1 px-2 py-2.5 text-xs",
+                      "relative flex flex-col items-center gap-1 px-2 py-2 text-xs",
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    <Icon />
+                    <span
+                      className={cn(
+                        "grid size-8 place-items-center rounded-full",
+                        active && "bg-primary text-primary-foreground",
+                      )}
+                    >
+                      <Icon className="size-4" />
+                    </span>
                     <span>{link.label}</span>
                     {link.href === "/app/compte" && me && me.unread > 0 ? (
                       <span className="absolute top-2 right-6 size-2 rounded-full bg-primary">

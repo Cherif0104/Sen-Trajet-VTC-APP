@@ -1,7 +1,15 @@
 import { useId } from "react"
 import { cn } from "cn"
 
-export function SenTrajetMark({ className, word = true }: { className?: string; word?: boolean }) {
+export function SenTrajetMark({
+  className,
+  word = true,
+  onLight = false,
+}: {
+  className?: string
+  word?: boolean
+  onLight?: boolean
+}) {
   const clipId = useId().replace(/:/g, "")
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
@@ -26,7 +34,12 @@ export function SenTrajetMark({ className, word = true }: { className?: string; 
       {word ? (
         <span className="text-lg leading-none font-semibold tracking-tight">
           Sen Trajet
-          <span className="mt-1 block text-[10px] font-medium tracking-[0.18em] text-accent uppercase">
+          <span
+            className={cn(
+              "mt-1 block text-[10px] font-medium tracking-[0.18em] uppercase",
+              onLight ? "text-[#0E8C78]" : "text-[#5ee0c5]",
+            )}
+          >
             Sénégal
           </span>
         </span>

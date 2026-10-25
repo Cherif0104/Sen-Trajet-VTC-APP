@@ -88,7 +88,7 @@ export default function ActivityPage() {
                 {trip.origin.label} → {trip.destination.label}
               </span>
               <span className="text-sm text-muted-foreground">
-                {formatWhen(trip.departAt)} · {trip.status} · {seatsLabel(trip.seatsLeft)} libres
+                {formatWhen(trip.departAt)} · {seatTripStatus(trip.status)} · {seatsLabel(trip.seatsLeft)} libres
               </span>
             </Link>
           ))}
@@ -103,7 +103,7 @@ export default function ActivityPage() {
                 {item.origin} → {item.destination}
               </span>
               <span className="text-muted-foreground">
-                {item.status}
+                {bookingStatus(item.status)}
                 {item.refund ? ` · remboursé ${fcfa(item.refund)}` : ""}
               </span>
             </Link>
@@ -112,6 +112,25 @@ export default function ActivityPage() {
       ) : null}
     </div>
   )
+}
+
+function bookingStatus(status: string) {
+  const labels: Record<string, string> = {
+    confirmed: "Confirmée",
+    completed: "Terminée",
+    cancelled: "Annulée",
+  }
+  return labels[status] ?? status
+}
+
+function seatTripStatus(status: string) {
+  const labels: Record<string, string> = {
+    published: "Publié",
+    full: "Complet",
+    completed: "Terminé",
+    cancelled: "Annulé",
+  }
+  return labels[status] ?? status
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

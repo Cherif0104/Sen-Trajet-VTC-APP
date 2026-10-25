@@ -129,7 +129,7 @@ export function BookRide({
       <div className="absolute top-3 left-3 z-30 rounded-full bg-background/95 pr-3 backdrop-blur md:hidden">
         <FocusBar title="Course" />
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[72vh] flex-col gap-4 overflow-y-auto rounded-t-[1.75rem] bg-white px-4 pt-3 pb-6 shadow-[0_-12px_40px_rgba(18,20,23,0.08)] md:relative md:inset-auto md:z-auto md:max-h-none md:h-dvh md:rounded-none md:shadow-none">
+      <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[72vh] flex-col gap-4 overflow-y-auto rounded-t-[1.75rem] bg-background px-4 pt-3 pb-6 shadow-[0_-16px_40px_rgba(0,0,0,0.28)] md:relative md:inset-auto md:z-auto md:max-h-none md:h-dvh md:rounded-none md:shadow-none">
         <div className="mx-auto h-1 w-10 rounded-full bg-border md:hidden" />
         <div className="hidden md:block">
           <FocusBar title="Course" />
@@ -199,7 +199,7 @@ export function BookRide({
                     disabled={!quote.available}
                     onClick={() => setCategory(quote.category)}
                     className={cn(
-                      "w-[78%] shrink-0 snap-center rounded-3xl border bg-white p-3 text-left",
+                      "w-[78%] shrink-0 snap-center rounded-3xl border bg-card p-3 text-left",
                       category === quote.category ? "border-primary" : "border-border",
                       !quote.available && "opacity-60",
                     )}
