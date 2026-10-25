@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ArmchairIcon, CarIcon, HouseIcon, UserRoundIcon, WalletIcon } from "lucide-react"
+import { ArmchairIcon, CarIcon, HistoryIcon, HouseIcon, UserRoundIcon, WalletIcon } from "lucide-react"
 import { SenTrajetMark } from "@/components/sen-trajet-mark"
 import { useMe } from "@/components/use-me"
 import { cn } from "cn"
@@ -17,6 +17,7 @@ const riderLinks = [
 
 const driverLinks = [
   { href: "/app/chauffeur", label: "Courses", icon: CarIcon },
+  { href: "/app/chauffeur/historique", label: "Historique", icon: HistoryIcon },
   { href: "/app/chauffeur/solde", label: "Solde", icon: WalletIcon },
   { href: "/app/chauffeur/profil", label: "Profil", icon: UserRoundIcon },
 ]
