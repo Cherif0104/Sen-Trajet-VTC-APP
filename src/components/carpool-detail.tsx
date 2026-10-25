@@ -19,7 +19,7 @@ export function CarpoolDetail({ id }: { id: string }) {
   const [trip, setTrip] = useState<CarpoolDTO | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [seats, setSeats] = useState(1)
-  const [method, setMethod] = useState<PayMethod>("wave")
+  const [method, setMethod] = useState<PayMethod>("cash")
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
