@@ -21,7 +21,15 @@ async function open(): Promise<Driver> {
   if (process.env.DATABASE_URL) {
     const url = process.env.DATABASE_URL
     const ssl = /localhost|127\.0\.0\.1/.test(url) ? false : ("require" as const)
-    return { kind: "pg", sql: postgres(url, { prepare: false, ssl, max: 1 }) }
+    return {
+      kind: "pg",
+      sql: postgres(url, {
+        prepare: false,
+        ssl,
+        max: 1,
+        onnotice: () => {},
+      }),
+    }
   }
   if (process.env.YOON_DB === "memory") return { kind: "pglite", client: new PGlite() }
   const dir = path.join(process.cwd(), "data", "pglite")
