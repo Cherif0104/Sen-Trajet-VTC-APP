@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation"
 import { connection } from "next/server"
 
 export class ApiError extends Error {
@@ -15,6 +16,7 @@ export async function handle(work: () => Promise<unknown>) {
     await connection()
     return Response.json(await work())
   } catch (error) {
+    unstable_rethrow(error)
     if (error instanceof ApiError) {
       return Response.json({ error: error.message }, { status: error.status })
     }
