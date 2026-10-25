@@ -37,6 +37,8 @@ Awa a 15 000 F de crédit. Moussa est chauffeur Éco, hors ligne, Hyundai Grand 
 
 Sans `DATABASE_URL`, les données vivent dans `data/pglite` (ignoré par git). Le schéma `src/server/schema.sql` s’applique au démarrage.
 
+Les villes des 14 régions sont dans `src/data/senegal-lieux.json` (25 octobre 2026). Limites régionales : geoBoundaries SEN-ADM1, millésime 2019, OCHA et Gouvernement du Sénégal, mise à jour du 19 janvier 2023. Lieux : GeoNames SN, chefs-lieux et localités d’au moins 5 000 habitants. La recherche les place devant Photon et Nominatim. Le catalogue de rues de Dakar ne sert que si les deux géocodeurs échouent.
+
 Pour Supabase ou un Postgres de VPS :
 
 ```bash

@@ -67,7 +67,7 @@ export function PlaceField({
             >
               <span className="text-sm font-medium">{place.label}</span>
               <span className="text-xs text-muted-foreground">
-                {place.area ? `${place.area} · ` : ""}
+                {place.area && place.area !== place.city ? `${place.area} · ` : ""}
                 {place.city}
               </span>
             </button>

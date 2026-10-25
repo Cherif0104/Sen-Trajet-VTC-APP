@@ -1,0 +1,1039 @@
+{
+  "updated": "2026-10-25",
+  "sources": [
+    "geoBoundaries SEN-ADM1, limites 2019, source OCHA et Gouvernement du Sénégal, mise à jour 19 janvier 2023",
+    "GeoNames SN, chefs-lieux et lieux d'au moins 5 000 habitants"
+  ],
+  "regions": [
+    {
+      "name": "Dakar",
+      "lat": 14.71057,
+      "lng": -17.38462,
+      "chefLieu": "Dakar"
+    },
+    {
+      "name": "Diourbel",
+      "lat": 14.78304,
+      "lng": -16.13909,
+      "chefLieu": "Diourbel"
+    },
+    {
+      "name": "Fatick",
+      "lat": 14.1627,
+      "lng": -16.29294,
+      "chefLieu": "Fatick"
+    },
+    {
+      "name": "Kaffrine",
+      "lat": 14.03996,
+      "lng": -15.33381,
+      "chefLieu": "Kaffrine"
+    },
+    {
+      "name": "Kaolack",
+      "lat": 14.0153,
+      "lng": -15.99972,
+      "chefLieu": "Kaolack"
+    },
+    {
+      "name": "Kolda",
+      "lat": 13.13813,
+      "lng": -14.03969,
+      "chefLieu": "Kolda"
+    },
+    {
+      "name": "Kédougou",
+      "lat": 12.88425,
+      "lng": -12.28057,
+      "chefLieu": "Kédougou"
+    },
+    {
+      "name": "Louga",
+      "lat": 15.28723,
+      "lng": -15.89359,
+      "chefLieu": "Louga"
+    },
+    {
+      "name": "Matam",
+      "lat": 15.43389,
+      "lng": -13.50303,
+      "chefLieu": "Matam"
+    },
+    {
+      "name": "Saint-Louis",
+      "lat": 16.37234,
+      "lng": -15.06979,
+      "chefLieu": "Saint-Louis"
+    },
+    {
+      "name": "Sédhiou",
+      "lat": 12.92178,
+      "lng": -15.66,
+      "chefLieu": "Sédhiou"
+    },
+    {
+      "name": "Tambacounda",
+      "lat": 13.51774,
+      "lng": -12.99812,
+      "chefLieu": "Tambacounda"
+    },
+    {
+      "name": "Thiès",
+      "lat": 14.70779,
+      "lng": -16.69138,
+      "chefLieu": "Thiès"
+    },
+    {
+      "name": "Ziguinchor",
+      "lat": 12.78153,
+      "lng": -16.32977,
+      "chefLieu": "Ziguinchor"
+    }
+  ],
+  "lieux": [
+    {
+      "name": "Dakar",
+      "region": "Dakar",
+      "lat": 14.6937,
+      "lng": -17.44406,
+      "population": 2646503,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Thiès",
+      "region": "Thiès",
+      "lat": 14.78944,
+      "lng": -16.92602,
+      "population": 317763,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Kaolack",
+      "region": "Kaolack",
+      "lat": 14.15197,
+      "lng": -16.07259,
+      "population": 298904,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Saint-Louis",
+      "region": "Saint-Louis",
+      "lat": 16.01793,
+      "lng": -16.48962,
+      "population": 254171,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Ziguinchor",
+      "region": "Ziguinchor",
+      "lat": 12.56801,
+      "lng": -16.27326,
+      "population": 214874,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Diourbel",
+      "region": "Diourbel",
+      "lat": 14.64792,
+      "lng": -16.24363,
+      "population": 157554,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Tambacounda",
+      "region": "Tambacounda",
+      "lat": 13.77073,
+      "lng": -13.66734,
+      "population": 149071,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Louga",
+      "region": "Louga",
+      "lat": 15.61867,
+      "lng": -16.22436,
+      "population": 113365,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Kolda",
+      "region": "Kolda",
+      "lat": 12.8939,
+      "lng": -14.94125,
+      "population": 103574,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Kaffrine",
+      "region": "Kaffrine",
+      "lat": 14.10594,
+      "lng": -15.5508,
+      "population": 57307,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Fatick",
+      "region": "Fatick",
+      "lat": 14.33236,
+      "lng": -16.40513,
+      "population": 39361,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Sédhiou",
+      "region": "Sédhiou",
+      "lat": 12.70806,
+      "lng": -15.55694,
+      "population": 31511,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Kédougou",
+      "region": "Kédougou",
+      "lat": 12.55561,
+      "lng": -12.18076,
+      "population": 30051,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Matam",
+      "region": "Matam",
+      "lat": 15.65587,
+      "lng": -13.25544,
+      "population": 27695,
+      "kind": "chef-lieu"
+    },
+    {
+      "name": "Pikine",
+      "region": "Dakar",
+      "lat": 14.76457,
+      "lng": -17.39071,
+      "population": 1170791,
+      "kind": "ville"
+    },
+    {
+      "name": "Touba",
+      "region": "Diourbel",
+      "lat": 14.86229,
+      "lng": -15.87532,
+      "population": 1120824,
+      "kind": "ville"
+    },
+    {
+      "name": "Guédiawaye",
+      "region": "Dakar",
+      "lat": 14.77446,
+      "lng": -17.40212,
+      "population": 329659,
+      "kind": "ville"
+    },
+    {
+      "name": "Rufisque",
+      "region": "Dakar",
+      "lat": 14.71542,
+      "lng": -17.27334,
+      "population": 295459,
+      "kind": "ville"
+    },
+    {
+      "name": "Mbour",
+      "region": "Thiès",
+      "lat": 14.42196,
+      "lng": -16.96375,
+      "population": 284189,
+      "kind": "ville"
+    },
+    {
+      "name": "Rufisque est",
+      "region": "Dakar",
+      "lat": 14.7162,
+      "lng": -17.27283,
+      "population": 221066,
+      "kind": "ville"
+    },
+    {
+      "name": "Tivaouane",
+      "region": "Thiès",
+      "lat": 14.95186,
+      "lng": -16.8152,
+      "population": 102658,
+      "kind": "ville"
+    },
+    {
+      "name": "Mbaké",
+      "region": "Diourbel",
+      "lat": 14.79032,
+      "lng": -15.90803,
+      "population": 101451,
+      "kind": "ville"
+    },
+    {
+      "name": "Tiébo",
+      "region": "Diourbel",
+      "lat": 14.63333,
+      "lng": -16.23333,
+      "population": 100289,
+      "kind": "ville"
+    },
+    {
+      "name": "Yoff",
+      "region": "Dakar",
+      "lat": 14.74671,
+      "lng": -17.49003,
+      "population": 89442,
+      "kind": "ville"
+    },
+    {
+      "name": "Keur Médoune",
+      "region": "Diourbel",
+      "lat": 14.75835,
+      "lng": -15.90434,
+      "population": 77255,
+      "kind": "ville"
+    },
+    {
+      "name": "Richard-Toll",
+      "region": "Saint-Louis",
+      "lat": 16.4625,
+      "lng": -15.70083,
+      "population": 73147,
+      "kind": "ville"
+    },
+    {
+      "name": "Dougnane",
+      "region": "Thiès",
+      "lat": 14.95856,
+      "lng": -16.86999,
+      "population": 69556,
+      "kind": "ville"
+    },
+    {
+      "name": "Bargny",
+      "region": "Dakar",
+      "lat": 14.69707,
+      "lng": -17.23015,
+      "population": 69242,
+      "kind": "ville"
+    },
+    {
+      "name": "Bargny Guèdj",
+      "region": "Dakar",
+      "lat": 14.68698,
+      "lng": -17.22808,
+      "population": 51188,
+      "kind": "ville"
+    },
+    {
+      "name": "Bargny Ngoude",
+      "region": "Dakar",
+      "lat": 14.69407,
+      "lng": -17.2353,
+      "population": 51188,
+      "kind": "ville"
+    },
+    {
+      "name": "Nguékhokh",
+      "region": "Thiès",
+      "lat": 14.51255,
+      "lng": -17.00447,
+      "population": 47964,
+      "kind": "ville"
+    },
+    {
+      "name": "Diamniadio",
+      "region": "Dakar",
+      "lat": 14.72051,
+      "lng": -17.1816,
+      "population": 47759,
+      "kind": "ville"
+    },
+    {
+      "name": "Joal",
+      "region": "Thiès",
+      "lat": 14.17309,
+      "lng": -16.84929,
+      "population": 45903,
+      "kind": "ville"
+    },
+    {
+      "name": "Dara",
+      "region": "Louga",
+      "lat": 15.34844,
+      "lng": -15.47993,
+      "population": 45530,
+      "kind": "ville"
+    },
+    {
+      "name": "Vélingara",
+      "region": "Kolda",
+      "lat": 13.15,
+      "lng": -14.11667,
+      "population": 45431,
+      "kind": "ville"
+    },
+    {
+      "name": "Sébikhotane",
+      "region": "Dakar",
+      "lat": 14.74521,
+      "lng": -17.13783,
+      "population": 42839,
+      "kind": "ville"
+    },
+    {
+      "name": "Sali",
+      "region": "Thiès",
+      "lat": 14.44111,
+      "lng": -17.01944,
+      "population": 41811,
+      "kind": "ville"
+    },
+    {
+      "name": "Jaxaay Parcelle Niakoul Rap",
+      "region": "Dakar",
+      "lat": 14.77474,
+      "lng": -17.28024,
+      "population": 41570,
+      "kind": "ville"
+    },
+    {
+      "name": "Niakoul Rab",
+      "region": "Dakar",
+      "lat": 14.78421,
+      "lng": -17.27361,
+      "population": 41570,
+      "kind": "ville"
+    },
+    {
+      "name": "Mboro",
+      "region": "Thiès",
+      "lat": 15.14051,
+      "lng": -16.88682,
+      "population": 40811,
+      "kind": "ville"
+    },
+    {
+      "name": "Bambey",
+      "region": "Diourbel",
+      "lat": 14.70074,
+      "lng": -16.45911,
+      "population": 37374,
+      "kind": "ville"
+    },
+    {
+      "name": "Médina Gounas",
+      "region": "Kolda",
+      "lat": 13.13607,
+      "lng": -13.75566,
+      "population": 36588,
+      "kind": "ville"
+    },
+    {
+      "name": "N’diareme limamoulaye",
+      "region": "Dakar",
+      "lat": 14.78148,
+      "lng": -17.3841,
+      "population": 35171,
+      "kind": "ville"
+    },
+    {
+      "name": "Le Plateau",
+      "region": "Dakar",
+      "lat": 14.66222,
+      "lng": -17.43972,
+      "population": 34713,
+      "kind": "ville"
+    },
+    {
+      "name": "Ndibène Dahra",
+      "region": "Louga",
+      "lat": 15.3338,
+      "lng": -15.4766,
+      "population": 32941,
+      "kind": "ville"
+    },
+    {
+      "name": "Koungheul",
+      "region": "Kaffrine",
+      "lat": 13.98333,
+      "lng": -14.8,
+      "population": 31149,
+      "kind": "ville"
+    },
+    {
+      "name": "Bignona",
+      "region": "Ziguinchor",
+      "lat": 12.81028,
+      "lng": -16.22639,
+      "population": 28642,
+      "kind": "ville"
+    },
+    {
+      "name": "Mékhé",
+      "region": "Thiès",
+      "lat": 15.1097,
+      "lng": -16.6218,
+      "population": 27566,
+      "kind": "ville"
+    },
+    {
+      "name": "Ouro Sogui",
+      "region": "Matam",
+      "lat": 15.60588,
+      "lng": -13.3223,
+      "population": 27222,
+      "kind": "ville"
+    },
+    {
+      "name": "Kahone",
+      "region": "Kaolack",
+      "lat": 14.15838,
+      "lng": -16.03572,
+      "population": 26376,
+      "kind": "ville"
+    },
+    {
+      "name": "Diaoubé",
+      "region": "Kolda",
+      "lat": 12.91667,
+      "lng": -14.16667,
+      "population": 26165,
+      "kind": "ville"
+    },
+    {
+      "name": "Poukham Un",
+      "region": "Fatick",
+      "lat": 14.35751,
+      "lng": -16.41235,
+      "population": 24146,
+      "kind": "ville"
+    },
+    {
+      "name": "Pout",
+      "region": "Thiès",
+      "lat": 14.77099,
+      "lng": -17.06107,
+      "population": 23728,
+      "kind": "ville"
+    },
+    {
+      "name": "Kayar",
+      "region": "Thiès",
+      "lat": 14.91893,
+      "lng": -17.11978,
+      "population": 23585,
+      "kind": "ville"
+    },
+    {
+      "name": "Dagana",
+      "region": "Saint-Louis",
+      "lat": 16.47667,
+      "lng": -15.6,
+      "population": 21750,
+      "kind": "ville"
+    },
+    {
+      "name": "Koungneul Sossé",
+      "region": "Kaffrine",
+      "lat": 13.96667,
+      "lng": -14.81667,
+      "population": 20942,
+      "kind": "ville"
+    },
+    {
+      "name": "Nioro du Rip",
+      "region": "Kaolack",
+      "lat": 13.75,
+      "lng": -15.8,
+      "population": 20784,
+      "kind": "ville"
+    },
+    {
+      "name": "Guinguinéo",
+      "region": "Kaolack",
+      "lat": 14.2695,
+      "lng": -15.94508,
+      "population": 20340,
+      "kind": "ville"
+    },
+    {
+      "name": "Khombole",
+      "region": "Thiès",
+      "lat": 14.76361,
+      "lng": -16.6916,
+      "population": 20321,
+      "kind": "ville"
+    },
+    {
+      "name": "Ndioum",
+      "region": "Saint-Louis",
+      "lat": 16.51293,
+      "lng": -14.64706,
+      "population": 20270,
+      "kind": "ville"
+    },
+    {
+      "name": "Thiadiaye",
+      "region": "Thiès",
+      "lat": 14.42038,
+      "lng": -16.70258,
+      "population": 20168,
+      "kind": "ville"
+    },
+    {
+      "name": "Kébémer",
+      "region": "Louga",
+      "lat": 15.365,
+      "lng": -16.4339,
+      "population": 19902,
+      "kind": "ville"
+    },
+    {
+      "name": "Linguère",
+      "region": "Louga",
+      "lat": 15.3953,
+      "lng": -15.1193,
+      "population": 19191,
+      "kind": "ville"
+    },
+    {
+      "name": "Gandiaye",
+      "region": "Kaolack",
+      "lat": 14.24362,
+      "lng": -16.27231,
+      "population": 18239,
+      "kind": "ville"
+    },
+    {
+      "name": "Goudomp",
+      "region": "Sédhiou",
+      "lat": 12.57778,
+      "lng": -15.87222,
+      "population": 18239,
+      "kind": "ville"
+    },
+    {
+      "name": "Koumpentoum",
+      "region": "Tambacounda",
+      "lat": 13.98333,
+      "lng": -14.56667,
+      "population": 15723,
+      "kind": "ville"
+    },
+    {
+      "name": "Gossas Village",
+      "region": "Fatick",
+      "lat": 14.48409,
+      "lng": -16.11377,
+      "population": 15630,
+      "kind": "ville"
+    },
+    {
+      "name": "Kbombole",
+      "region": "Thiès",
+      "lat": 14.76667,
+      "lng": -16.7,
+      "population": 15587,
+      "kind": "ville"
+    },
+    {
+      "name": "Kanel",
+      "region": "Matam",
+      "lat": 15.4916,
+      "lng": -13.17627,
+      "population": 15244,
+      "kind": "ville"
+    },
+    {
+      "name": "Thilogne",
+      "region": "Matam",
+      "lat": 15.92389,
+      "lng": -13.65778,
+      "population": 15044,
+      "kind": "ville"
+    },
+    {
+      "name": "Mermoz Boabab",
+      "region": "Dakar",
+      "lat": 14.70649,
+      "lng": -17.47581,
+      "population": 15000,
+      "kind": "ville"
+    },
+    {
+      "name": "Sokone",
+      "region": "Fatick",
+      "lat": 13.87821,
+      "lng": -16.3682,
+      "population": 14745,
+      "kind": "ville"
+    },
+    {
+      "name": "Karang Poste",
+      "region": "Fatick",
+      "lat": 13.60661,
+      "lng": -16.42427,
+      "population": 14624,
+      "kind": "ville"
+    },
+    {
+      "name": "Nganda",
+      "region": "Kaffrine",
+      "lat": 13.83333,
+      "lng": -15.41667,
+      "population": 14369,
+      "kind": "ville"
+    },
+    {
+      "name": "Sintiou Bamambé",
+      "region": "Matam",
+      "lat": 15.36736,
+      "lng": -13.13471,
+      "population": 13823,
+      "kind": "ville"
+    },
+    {
+      "name": "Kidira",
+      "region": "Tambacounda",
+      "lat": 14.45668,
+      "lng": -12.21659,
+      "population": 13551,
+      "kind": "ville"
+    },
+    {
+      "name": "Bakel",
+      "region": "Tambacounda",
+      "lat": 14.90238,
+      "lng": -12.45935,
+      "population": 13329,
+      "kind": "ville"
+    },
+    {
+      "name": "Ndofane",
+      "region": "Kaolack",
+      "lat": 13.91667,
+      "lng": -15.93333,
+      "population": 12898,
+      "kind": "ville"
+    },
+    {
+      "name": "Passy",
+      "region": "Fatick",
+      "lat": 13.98587,
+      "lng": -16.26179,
+      "population": 12571,
+      "kind": "ville"
+    },
+    {
+      "name": "Madina Wandifa",
+      "region": "Sédhiou",
+      "lat": 13.05794,
+      "lng": -15.64319,
+      "population": 12205,
+      "kind": "ville"
+    },
+    {
+      "name": "Sangalkam",
+      "region": "Dakar",
+      "lat": 14.78023,
+      "lng": -17.22761,
+      "population": 11915,
+      "kind": "ville"
+    },
+    {
+      "name": "Podor",
+      "region": "Saint-Louis",
+      "lat": 16.64892,
+      "lng": -14.96073,
+      "population": 11608,
+      "kind": "ville"
+    },
+    {
+      "name": "Ross-Bétio",
+      "region": "Saint-Louis",
+      "lat": 16.27333,
+      "lng": -16.13778,
+      "population": 11588,
+      "kind": "ville"
+    },
+    {
+      "name": "Diofior",
+      "region": "Fatick",
+      "lat": 14.1899,
+      "lng": -16.66089,
+      "population": 11312,
+      "kind": "ville"
+    },
+    {
+      "name": "Kounkané",
+      "region": "Kolda",
+      "lat": 12.93333,
+      "lng": -14.08333,
+      "population": 10798,
+      "kind": "ville"
+    },
+    {
+      "name": "Keur Madiabel",
+      "region": "Kaolack",
+      "lat": 13.8472,
+      "lng": -16.05774,
+      "population": 10542,
+      "kind": "ville"
+    },
+    {
+      "name": "Nguidjlone",
+      "region": "Matam",
+      "lat": 15.94052,
+      "lng": -13.35138,
+      "population": 10444,
+      "kind": "ville"
+    },
+    {
+      "name": "Tilogne Tokossel",
+      "region": "Matam",
+      "lat": 15.96667,
+      "lng": -13.6,
+      "population": 10441,
+      "kind": "ville"
+    },
+    {
+      "name": "Amady Ounaré",
+      "region": "Matam",
+      "lat": 15.34714,
+      "lng": -13.01647,
+      "population": 10175,
+      "kind": "ville"
+    },
+    {
+      "name": "Rosso",
+      "region": "Saint-Louis",
+      "lat": 16.42028,
+      "lng": -15.79834,
+      "population": 9923,
+      "kind": "ville"
+    },
+    {
+      "name": "Marsassoum",
+      "region": "Kolda",
+      "lat": 12.8275,
+      "lng": -15.98056,
+      "population": 9815,
+      "kind": "ville"
+    },
+    {
+      "name": "Ngaparou",
+      "region": "Thiès",
+      "lat": 14.46419,
+      "lng": -17.05619,
+      "population": 9525,
+      "kind": "ville"
+    },
+    {
+      "name": "Haïré Lao",
+      "region": "Saint-Louis",
+      "lat": 16.39697,
+      "lng": -14.32196,
+      "population": 9472,
+      "kind": "ville"
+    },
+    {
+      "name": "Poponguine",
+      "region": "Thiès",
+      "lat": 14.55735,
+      "lng": -17.11396,
+      "population": 8651,
+      "kind": "ville"
+    },
+    {
+      "name": "Tionk Essil",
+      "region": "Ziguinchor",
+      "lat": 12.78556,
+      "lng": -16.52167,
+      "population": 8389,
+      "kind": "ville"
+    },
+    {
+      "name": "Sibassor",
+      "region": "Kaolack",
+      "lat": 14.18645,
+      "lng": -16.15947,
+      "population": 8141,
+      "kind": "ville"
+    },
+    {
+      "name": "Pal",
+      "region": "Saint-Louis",
+      "lat": 15.9139,
+      "lng": -16.2599,
+      "population": 8133,
+      "kind": "ville"
+    },
+    {
+      "name": "Guéoul",
+      "region": "Louga",
+      "lat": 15.48333,
+      "lng": -16.35,
+      "population": 8003,
+      "kind": "ville"
+    },
+    {
+      "name": "Malèm Hodar",
+      "region": "Kaffrine",
+      "lat": 14.08873,
+      "lng": -15.29197,
+      "population": 7879,
+      "kind": "ville"
+    },
+    {
+      "name": "Waoundé",
+      "region": "Matam",
+      "lat": 15.26367,
+      "lng": -12.86821,
+      "population": 7816,
+      "kind": "ville"
+    },
+    {
+      "name": "Diawara",
+      "region": "Matam",
+      "lat": 15.02196,
+      "lng": -12.54374,
+      "population": 7541,
+      "kind": "ville"
+    },
+    {
+      "name": "Ndiagne",
+      "region": "Louga",
+      "lat": 15.4094,
+      "lng": -16.0707,
+      "population": 7496,
+      "kind": "ville"
+    },
+    {
+      "name": "Ndiamakouta",
+      "region": "Sédhiou",
+      "lat": 13.31667,
+      "lng": -15.63333,
+      "population": 7179,
+      "kind": "ville"
+    },
+    {
+      "name": "Gaé",
+      "region": "Saint-Louis",
+      "lat": 16.56667,
+      "lng": -15.45,
+      "population": 7148,
+      "kind": "ville"
+    },
+    {
+      "name": "Birkelane",
+      "region": "Kaffrine",
+      "lat": 14.12933,
+      "lng": -15.74409,
+      "population": 7011,
+      "kind": "ville"
+    },
+    {
+      "name": "Sémé",
+      "region": "Matam",
+      "lat": 15.19422,
+      "lng": -12.94482,
+      "population": 6891,
+      "kind": "ville"
+    },
+    {
+      "name": "Goudiry",
+      "region": "Tambacounda",
+      "lat": 14.18146,
+      "lng": -12.71803,
+      "population": 6867,
+      "kind": "ville"
+    },
+    {
+      "name": "Foundiougne",
+      "region": "Fatick",
+      "lat": 14.12272,
+      "lng": -16.46916,
+      "population": 6824,
+      "kind": "ville"
+    },
+    {
+      "name": "Bounkiling",
+      "region": "Sédhiou",
+      "lat": 13.05,
+      "lng": -15.7,
+      "population": 6416,
+      "kind": "ville"
+    },
+    {
+      "name": "Goléré",
+      "region": "Saint-Louis",
+      "lat": 16.25575,
+      "lng": -14.10165,
+      "population": 6373,
+      "kind": "ville"
+    },
+    {
+      "name": "Dabo",
+      "region": "Kolda",
+      "lat": 12.88333,
+      "lng": -14.48333,
+      "population": 6069,
+      "kind": "ville"
+    },
+    {
+      "name": "Odobéré",
+      "region": "Matam",
+      "lat": 15.56142,
+      "lng": -13.09862,
+      "population": 6029,
+      "kind": "ville"
+    },
+    {
+      "name": "Diouloulou",
+      "region": "Ziguinchor",
+      "lat": 13.05009,
+      "lng": -16.59978,
+      "population": 5920,
+      "kind": "ville"
+    },
+    {
+      "name": "Guédé",
+      "region": "Saint-Louis",
+      "lat": 16.53839,
+      "lng": -14.80412,
+      "population": 5600,
+      "kind": "ville"
+    },
+    {
+      "name": "Somone",
+      "region": "Thiès",
+      "lat": 14.48649,
+      "lng": -17.07524,
+      "population": 5448,
+      "kind": "ville"
+    },
+    {
+      "name": "Dembankané",
+      "region": "Matam",
+      "lat": 15.08893,
+      "lng": -12.6998,
+      "population": 5293,
+      "kind": "ville"
+    },
+    {
+      "name": "Galoya Toucouleur",
+      "region": "Saint-Louis",
+      "lat": 16.07397,
+      "lng": -13.85894,
+      "population": 5288,
+      "kind": "ville"
+    },
+    {
+      "name": "Soum",
+      "region": "Fatick",
+      "lat": 14.08179,
+      "lng": -16.48127,
+      "population": 5044,
+      "kind": "ville"
+    }
+  ]
+}

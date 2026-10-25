@@ -1,4 +1,6 @@
+import { norm } from "@/lib/domain"
 import { searchPlaces, toPoint, type GeoPoint } from "@/lib/places"
+import { nearestLieu, searchLieux } from "@/lib/senegal-carte"
 
 const BOX = { minLat: 12.2, maxLat: 16.8, minLng: -17.8, maxLng: -11.2 }
 
@@ -88,25 +90,42 @@ function catalog(query: string) {
   return searchPlaces(query).map((place) => toPoint(place)).slice(0, 6)
 }
 
+function samePlace(a: GeoPoint, b: GeoPoint) {
+  if (norm(a.label) === norm(b.label)) return true
+  const close = Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lng - b.lng) < 0.01
+  return close && norm(a.city) === norm(b.city)
+}
+
+function mergePlaces(local: GeoPoint[], remote: GeoPoint[]) {
+  const out: GeoPoint[] = []
+  for (const place of [...local, ...remote]) {
+    if (out.some((item) => samePlace(item, place))) continue
+    out.push(place)
+    if (out.length >= 8) break
+  }
+  return out
+}
+
 export async function searchAddresses(query: string): Promise<GeoPoint[]> {
   const q = query.trim()
   if (q.length < 2) return []
-  if (process.env.YOON_SKIP_ROUTING === "1") return catalog(q)
+  const local = searchLieux(q)
+  if (process.env.YOON_SKIP_ROUTING === "1") return mergePlaces(local, catalog(q))
   try {
     const remote = await photon(
       `/api/?q=${encodeURIComponent(q)}&limit=6&lat=14.72&lon=-17.45&lang=fr&bbox=-17.8,12.2,-11.2,16.8`,
     )
-    if (remote.length) return remote.slice(0, 6)
+    if (remote.length) return mergePlaces(local, remote)
   } catch {
     /* Photon indisponible : Nominatim, puis le catalogue. */
   }
   try {
     const remote = await nominatimSearch(q)
-    if (remote.length) return remote.slice(0, 6)
+    if (remote.length) return mergePlaces(local, remote)
   } catch {
     /* Le catalogue local ne sert que si les deux géocodeurs échouent. */
   }
-  return catalog(q)
+  return mergePlaces(local, catalog(q))
 }
 
 export async function reverseAddress(lat: number, lng: number): Promise<GeoPoint | null> {
@@ -145,5 +164,5 @@ export async function reverseAddress(lat: number, lng: number): Promise<GeoPoint
   } catch {
     /* reverse Nominatim raté */
   }
-  return here
+  return nearestLieu(lat, lng) ?? here
 }
