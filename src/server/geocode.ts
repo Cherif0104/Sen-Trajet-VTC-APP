@@ -1,5 +1,5 @@
 import { norm } from "@/lib/domain"
-import { searchPlaces, toPoint, type GeoPoint } from "@/lib/places"
+import { searchPlaces, toPoint, type GeoPoint, type PlaceKind } from "@/lib/places"
 import { nearestLieu, searchLieux } from "@/lib/senegal-carte"
 
 const BOX = { minLat: 12.2, maxLat: 16.8, minLng: -17.8, maxLng: -11.2 }
@@ -22,25 +22,26 @@ type PhotonFeature = {
   }
 }
 
-function fromPhoton(feature: PhotonFeature): GeoPoint | null {
+function fromPhoton(feature: PhotonFeature, kind: PlaceKind = "rue"): GeoPoint | null {
   const [lng, lat] = feature.geometry?.coordinates ?? []
   const props = feature.properties ?? {}
   if (props.countrycode && props.countrycode !== "SN") return null
   if (typeof lat !== "number" || typeof lng !== "number" || !inSenegal(lat, lng)) return null
-  const street = [props.housenumber, props.street || props.name].filter(Boolean).join(" ")
-  const label = street || props.name || props.locality || ""
+  const street = [props.housenumber, props.street].filter(Boolean).join(" ")
+  const label = kind === "rue" ? street || props.name || props.locality || "" : props.name || street || props.locality || ""
   if (!label) return null
   const place: GeoPoint = {
     label,
     city: props.city || props.locality || props.state || "Sénégal",
     lat,
     lng,
+    kind,
   }
   if (props.district) place.area = props.district
   return place
 }
 
-async function photon(path: string) {
+async function photon(path: string, kind: PlaceKind = "rue") {
   const response = await fetch(`https://photon.komoot.io${path}`, {
     signal: AbortSignal.timeout(2500),
     headers: { Accept: "application/json", "Accept-Language": "fr" },
@@ -49,7 +50,7 @@ async function photon(path: string) {
   const body = (await response.json()) as { features?: PhotonFeature[] }
   const places: GeoPoint[] = []
   for (const feature of body.features ?? []) {
-    const place = fromPhoton(feature)
+    const place = fromPhoton(feature, kind)
     if (place) places.push(place)
   }
   return places
@@ -79,6 +80,7 @@ async function nominatimSearch(query: string): Promise<GeoPoint[]> {
       city: item.address?.city || item.address?.town || item.address?.village || item.address?.state || "Sénégal",
       lat,
       lng,
+      kind: "rue",
     }
     if (item.address?.suburb) place.area = item.address.suburb
     places.push(place)
@@ -86,14 +88,28 @@ async function nominatimSearch(query: string): Promise<GeoPoint[]> {
   return places
 }
 
-function catalog(query: string) {
-  return searchPlaces(query).map((place) => toPoint(place)).slice(0, 6)
-}
-
 function samePlace(a: GeoPoint, b: GeoPoint) {
   if (norm(a.label) === norm(b.label)) return true
-  const close = Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lng - b.lng) < 0.01
-  return close && norm(a.city) === norm(b.city)
+  const close = Math.abs(a.lat - b.lat) < 0.02 && Math.abs(a.lng - b.lng) < 0.02
+  if (!close) return false
+  if (norm(a.city) === norm(b.city)) return true
+  const left = norm(a.label)
+  const right = norm(b.label)
+  return left.includes(right) || right.includes(left)
+}
+
+const OSM_TAG: Record<"pharmacie" | "ecole" | "commerce", string> = {
+  pharmacie: "amenity:pharmacy",
+  ecole: "amenity:school",
+  commerce: "shop",
+}
+
+function hintedKind(query: string): "pharmacie" | "ecole" | "commerce" | null {
+  const needle = norm(query)
+  if (needle.includes("pharm")) return "pharmacie"
+  if (needle.includes("ecole") || needle.includes("lycee") || needle.includes("college")) return "ecole"
+  if (needle.includes("march") || needle.includes("boutique") || needle.includes("commerce")) return "commerce"
+  return null
 }
 
 function mergePlaces(local: GeoPoint[], remote: GeoPoint[]) {
@@ -106,11 +122,41 @@ function mergePlaces(local: GeoPoint[], remote: GeoPoint[]) {
   return out
 }
 
-export async function searchAddresses(query: string): Promise<GeoPoint[]> {
+async function taggedPlaces(query: string, kind: "pharmacie" | "ecole" | "commerce") {
+  const tag = OSM_TAG[kind]
+  return photon(
+    `/api/?q=${encodeURIComponent(query)}&limit=6&lat=14.72&lon=-17.45&lang=fr&bbox=-17.8,12.2,-11.2,16.8&osm_tag=${encodeURIComponent(tag)}`,
+    kind,
+  )
+}
+
+export async function searchAddresses(query: string, kind?: PlaceKind | null): Promise<GeoPoint[]> {
   const q = query.trim()
   if (q.length < 2) return []
-  const local = searchLieux(q)
-  if (process.env.YOON_SKIP_ROUTING === "1") return mergePlaces(local, catalog(q))
+  const villes = searchLieux(q)
+  const quartiers = searchPlaces(q).map((place) => toPoint(place))
+  if (kind === "ville") return villes.slice(0, 8)
+  if (kind === "quartier") return quartiers.slice(0, 8)
+  const curated = mergePlaces(villes, quartiers)
+  if (kind === "pharmacie" || kind === "ecole" || kind === "commerce") {
+    if (process.env.YOON_SKIP_ROUTING === "1") return []
+    try {
+      return await taggedPlaces(q, kind)
+    } catch {
+      return []
+    }
+  }
+  let tagged: GeoPoint[] = []
+  const hint = hintedKind(q)
+  if (hint && process.env.YOON_SKIP_ROUTING !== "1") {
+    try {
+      tagged = await taggedPlaces(q, hint)
+    } catch {
+      tagged = []
+    }
+  }
+  const local = mergePlaces(tagged, curated)
+  if (process.env.YOON_SKIP_ROUTING === "1") return local
   try {
     const remote = await photon(
       `/api/?q=${encodeURIComponent(q)}&limit=6&lat=14.72&lon=-17.45&lang=fr&bbox=-17.8,12.2,-11.2,16.8`,
@@ -125,7 +171,7 @@ export async function searchAddresses(query: string): Promise<GeoPoint[]> {
   } catch {
     /* Le catalogue local ne sert que si les deux géocodeurs échouent. */
   }
-  return mergePlaces(local, catalog(q))
+  return local
 }
 
 export async function reverseAddress(lat: number, lng: number): Promise<GeoPoint | null> {

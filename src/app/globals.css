@@ -149,3 +149,8 @@
 .leaflet-control-attribution {
   font-size: 10px;
 }
+
+.st-heading {
+  background: transparent;
+  border: none;
+}

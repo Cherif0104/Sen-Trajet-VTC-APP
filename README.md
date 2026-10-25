@@ -45,7 +45,11 @@ Pour Supabase ou un Postgres de VPS :
 DATABASE_URL="postgresql://..." AUTH_SECRET="un-secret-long" npm run dev
 ```
 
-Sur Vercel, ces deux variables sont obligatoires : une fonction serverless ne conserve pas le fichier PGlite d’une instance à l’autre. Utilisez la chaîne de connexion en mode transaction (`prepare: false` est déjà réglé). Les politiques RLS sont activées sans policy pour le rôle anonyme : seul le serveur, avec l’utilisateur propriétaire, lit et écrit.
+Sur Vercel, ces deux variables sont obligatoires : une fonction serverless ne conserve pas le fichier PGlite d’une instance à l’autre. Sans `DATABASE_URL`, l’API répond que le Postgres dédié manque. Utilisez la chaîne de connexion en mode transaction (`prepare: false` est déjà réglé). Les politiques RLS sont activées sans policy pour le rôle anonyme : seul le serveur, avec l’utilisateur propriétaire, lit et écrit.
+
+Un nom de domaine n’est pas nécessaire pour une première version, ni pour un essai sur Vercel, ni pour préparer une fiche Play Store : le magasin identifie l’application par son nom de paquet. Un domaine sert plus tard aux liens, aux e-mails et au site. Un VPS n’est pas nécessaire non plus. Vercel sert l’application. Le seul service à ajouter est un Postgres neuf (Neon, ou un projet Supabase créé pour Sen Trajet). Le projet Supabase déjà nommé SEN TRAJET ne doit pas être réutilisé.
+
+L’espace admin enregistre la grille (base, kilomètre, commission, forfait aéroport, prix des sièges). L’espace client peut passer un compte en entreprise et ouvrir ou fermer course, sièges, lieux, facture, plafond et Trajet Serein.
 
 ## Ce qu’un acheteur peut voir, et ce qui reste simulé
 

@@ -9,6 +9,11 @@ export async function GET(request: Request) {
     if (params.has("lat") && params.has("lng") && Number.isFinite(lat) && Number.isFinite(lng)) {
       return { place: await reverseAddress(lat, lng) }
     }
-    return { places: await searchAddresses(params.get("q") ?? "") }
+    const kind = params.get("kind")
+    const filter =
+      kind === "ville" || kind === "quartier" || kind === "pharmacie" || kind === "ecole" || kind === "commerce" || kind === "rue"
+        ? kind
+        : null
+    return { places: await searchAddresses(params.get("q") ?? "", filter) }
   })
 }

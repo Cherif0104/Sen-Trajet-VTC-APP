@@ -15,6 +15,9 @@ let queue: Promise<unknown> = Promise.resolve()
 let opening: Promise<Driver> | null = null
 
 async function open(): Promise<Driver> {
+  if (process.env.VERCEL && !process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL manquant. Sen Trajet a besoin d’un Postgres dédié sur Vercel.")
+  }
   if (process.env.DATABASE_URL) {
     const url = process.env.DATABASE_URL
     const ssl = /localhost|127\.0\.0\.1/.test(url) ? false : ("require" as const)

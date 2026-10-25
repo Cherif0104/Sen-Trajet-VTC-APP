@@ -1,4 +1,4 @@
-import type { CategoryId, PayMethod } from "@/lib/domain"
+import type { CategoryId, ClientFeatures, PayMethod, Tariff } from "@/lib/domain"
 import type { GeoPoint } from "@/lib/places"
 
 export type PublicDriver = {
@@ -50,6 +50,11 @@ export type MeDTO = {
   unread: number
   activeRideId: string | null
   role: "rider" | "admin"
+  accountType: "particulier" | "entreprise"
+  companyName: string
+  features: ClientFeatures
+  places: GeoPoint[]
+  invoiceMonth: number
 }
 
 export type RideDriverDTO = {
@@ -74,6 +79,9 @@ export type RideDTO = {
   pickup: GeoPoint
   dropoff: GeoPoint
   route: [number, number][]
+  leg: "radar" | "approach" | "trip" | "done"
+  nearby: { lat: number; lng: number; heading: number }[]
+  heading: number | null
   distanceM: number
   durationS: number
   fare: number

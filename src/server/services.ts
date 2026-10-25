@@ -2,14 +2,18 @@ import { randomUUID } from "node:crypto"
 import type { ActivityDTO, CarpoolDTO, MeDTO, RideDTO } from "@/lib/dto"
 import {
   approachSeconds,
+  bearingDeg,
   measureFallback,
   cancelFee,
   carpoolRefund,
   CATEGORIES,
   dakarDate,
+  defaultTariff,
   demandZones,
   haversineKm,
+  lineRoute,
   norm,
+  pointOnRoute,
   paymentReference,
   priceBandError,
   priceRoute,
@@ -17,12 +21,15 @@ import {
   quoteAll,
   rankDrivers,
   ridePhase,
+  sanitizeFeatures,
+  sanitizeTariff,
   suggestSeatPrice,
   tripMotionSeconds,
-  corridors,
   type CategoryId,
+  type ClientFeatures,
   type PayMethod,
   type RankableDriver,
+  type Tariff,
 } from "@/lib/domain"
 import type { GeoPoint } from "@/lib/places"
 import { now } from "@/server/clock"
@@ -73,6 +80,28 @@ function categoryOf(value: unknown): CategoryId {
 function forClients<T extends { bot: boolean }>(drivers: T[]) {
   if (process.env.YOON_DB === "memory") return drivers
   return drivers.filter((driver) => !driver.bot)
+}
+
+async function loadTariff(sql: Sql): Promise<Tariff> {
+  const rows = await sql.query(`select value_json from settings where key = 'tariff'`)
+  if (!rows[0]) return defaultTariff()
+  return sanitizeTariff(parseJson(rows[0].value_json, null))
+}
+
+async function accountOf(sql: Sql, userId: string) {
+  const rows = await sql.query(
+    `select account_type, features_json, places_json, company_name from users where id = $1`,
+    [userId],
+  )
+  const account = text(rows[0]?.account_type) === "entreprise" ? "entreprise" : "particulier"
+  const raw = text(rows[0]?.features_json)
+  const features = sanitizeFeatures(raw ? parseJson(raw, null) : null, account)
+  return {
+    account,
+    features,
+    places: parseJson<GeoPoint[]>(rows[0]?.places_json, []),
+    companyName: text(rows[0]?.company_name),
+  }
 }
 
 function methodOf(value: unknown): PayMethod {
@@ -183,6 +212,7 @@ function rideRecord(row: RideRow) {
     pickup: { label: text(row.pickup_label), city: text(row.pickup_city), lat: num(row.pickup_lat), lng: num(row.pickup_lng) },
     dropoff: { label: text(row.dropoff_label), city: text(row.dropoff_city), lat: num(row.dropoff_lat), lng: num(row.dropoff_lng) },
     route: parseJson<[number, number][]>(row.route_json, []),
+    approach: parseJson<[number, number][]>(row.approach_json, []),
     distanceM: num(row.distance_m),
     durationS: num(row.duration_s),
     fare: num(row.fare_xof),
@@ -250,6 +280,7 @@ async function loadDrivers(sql: Sql, category: CategoryId): Promise<DriverFull[]
     model: text(row.model),
     color: text(row.color),
     plate: text(row.plate),
+    heading: num(row.heading),
   }))
 }
 
@@ -365,10 +396,11 @@ async function settleRide(sql: Sql, ride: Ride) {
 
 async function acceptRide(sql: Sql, ride: Ride, driver: DriverFull) {
   const km = haversineKm(driver, ride.pickup)
+  const approach = await planRoute(driver, ride.pickup)
   await sql.query(
     `update rides set status = 'accepted', driver_id = $2, bot = $3, accepted_at = $4,
        approach_s = $5, trip_motion_s = $6, driver_start_lat = $7, driver_start_lng = $8,
-       offered_driver_id = null, offer_expires_at = null
+       approach_json = $9, offered_driver_id = null, offer_expires_at = null
      where id = $1`,
     [
       ride.id,
@@ -379,6 +411,7 @@ async function acceptRide(sql: Sql, ride: Ride, driver: DriverFull) {
       tripMotionSeconds(ride.durationS, driver.bot),
       driver.lat,
       driver.lng,
+      JSON.stringify(approach.route),
     ],
   )
   await sql.query(
@@ -481,6 +514,7 @@ async function presentRide(sql: Sql, id: string, viewerId: string): Promise<Ride
     `select r.*,
         du.name as driver_name, du.rating as driver_user_rating, du.phone as driver_phone,
         d.plate, d.make, d.model, d.color, d.serene as driver_serene, d.bot as driver_bot,
+        d.lat as driver_lat, d.lng as driver_lng, d.heading as driver_heading,
         ru.name as rider_name, ru.rating as rider_user_rating, ru.phone as rider_phone
      from rides r
      left join users du on du.id = r.driver_id
@@ -511,6 +545,47 @@ async function presentRide(sql: Sql, id: string, viewerId: string): Promise<Ride
     now(),
   )
   const showPhone = ["accepted", "arrived", "in_progress"].includes(ride.status)
+  const human = Boolean(ride.driverId) && !flag(row.driver_bot)
+  const live =
+    human && row.driver_lat != null
+      ? { lat: num(row.driver_lat), lng: num(row.driver_lng) }
+      : null
+  let route = ride.route
+  let driverPoint = phase.point
+  let heading: number | null = null
+  let leg: RideDTO["leg"] = "done"
+  let nearby: RideDTO["nearby"] = []
+  if (ride.status === "matching") {
+    leg = "radar"
+    route = []
+    driverPoint = null
+    const radius = CATEGORIES[ride.category].radiusKm
+    const cars = await sql.query(
+      `select lat, lng, heading, bot from drivers
+       where category = $1 and online = true and busy = false and kyc = 'verified'`,
+      [ride.category],
+    )
+    nearby = forClients(cars.map((car) => ({ bot: flag(car.bot), lat: num(car.lat), lng: num(car.lng), heading: num(car.heading) })))
+      .map((car) => ({ ...car, km: haversineKm(car, ride.pickup) }))
+      .filter((car) => car.km <= radius)
+      .slice(0, 8)
+      .map((car) => ({ lat: car.lat, lng: car.lng, heading: car.heading }))
+  } else if (ride.status === "accepted" || ride.status === "arrived") {
+    leg = "approach"
+    const start = {
+      lat: ride.driverStartLat ?? ride.pickup.lat,
+      lng: ride.driverStartLng ?? ride.pickup.lng,
+    }
+    route = ride.approach.length > 1 ? ride.approach : lineRoute(start, ride.pickup)
+    if (live && ride.status === "accepted") driverPoint = live
+    const cursor = driverPoint ?? start
+    heading = ride.status === "arrived" ? num(row.driver_heading) : bearingDeg(cursor, ride.pickup)
+  } else if (ride.status === "in_progress") {
+    leg = "trip"
+    if (live) driverPoint = live
+    const ahead = pointOnRoute(ride.route, Math.min(1, phase.progress + 0.04))
+    heading = ahead && driverPoint ? bearingDeg(driverPoint, ahead) : num(row.driver_heading)
+  }
   return {
     id: ride.id,
     status: ride.status,
@@ -518,7 +593,10 @@ async function presentRide(sql: Sql, id: string, viewerId: string): Promise<Ride
     serene: ride.serene,
     pickup: ride.pickup,
     dropoff: ride.dropoff,
-    route: ride.route,
+    route,
+    leg,
+    nearby,
+    heading,
     distanceM: ride.distanceM,
     durationS: ride.durationS,
     fare: ride.fare,
@@ -536,7 +614,7 @@ async function presentRide(sql: Sql, id: string, viewerId: string): Promise<Ride
     tripMotionS: ride.tripMotionS,
     progress: phase.progress,
     etaS: phase.etaS,
-    driverPoint: phase.point,
+    driverPoint,
     driver: ride.driverId
       ? {
           id: ride.driverId,
@@ -722,6 +800,11 @@ export async function getMe(userId: string): Promise<MeDTO> {
        order by created_at desc limit 1`,
       [userId],
     )
+    const invoice = await sql.query<{ total: number }>(
+      `select coalesce(sum(-amount_xof), 0)::int as total from transactions
+       where user_id = $1 and type = 'ride_payment' and created_at >= date_trunc('month', now())`,
+      [userId],
+    )
     return {
       id: userId,
       email: text(user.email),
@@ -767,8 +850,44 @@ export async function getMe(userId: string): Promise<MeDTO> {
       unread: num(unread[0]?.n),
       activeRideId: active[0]?.id ?? null,
       role: text(user.role) === "admin" ? "admin" : "rider",
+      accountType: text(user.account_type) === "entreprise" ? "entreprise" : "particulier",
+      companyName: text(user.company_name),
+      features: sanitizeFeatures(
+        text(user.features_json) ? parseJson(user.features_json, null) : null,
+        text(user.account_type) === "entreprise" ? "entreprise" : "particulier",
+      ),
+      places: parseJson<GeoPoint[]>(user.places_json, []),
+      invoiceMonth: num(invoice[0]?.total),
     }
   })
+}
+
+export async function updateSpace(
+  userId: string,
+  input: { accountType?: string; companyName?: string; features?: ClientFeatures; places?: GeoPoint[] },
+) {
+  const account = input.accountType === "entreprise" ? "entreprise" : "particulier"
+  const features = sanitizeFeatures(input.features, account)
+  const companyName = (input.companyName ?? "").trim().slice(0, 80)
+  if (account === "entreprise" && companyName.length < 2) throw new ApiError("Indique le nom de l’entreprise.")
+  const places = (input.places ?? [])
+    .filter((place) => place && typeof place.lat === "number" && typeof place.label === "string")
+    .slice(0, 12)
+    .map((place) => ({
+      label: place.label.slice(0, 120),
+      city: (place.city || "").slice(0, 60),
+      area: place.area,
+      lat: place.lat,
+      lng: place.lng,
+      kind: place.kind,
+    }))
+  await withDb(async (sql) => {
+    await sql.query(
+      `update users set account_type = $2, company_name = $3, features_json = $4, places_json = $5 where id = $1`,
+      [userId, account, companyName, JSON.stringify(features), JSON.stringify(places)],
+    )
+  })
+  return getMe(userId)
 }
 
 export async function updateProfile(userId: string, input: { name: string; phone: string }) {
@@ -851,6 +970,7 @@ export async function quoteTrip(pickupInput: unknown, dropoffInput: unknown) {
   const planned = await planRoute(pickup, dropoff)
   return withDb(async (sql) => {
     const supply = await nearestByCategory(sql, pickup)
+    const tariff = await loadTariff(sql)
     return {
       distanceM: planned.distanceM,
       durationS: planned.durationS,
@@ -861,6 +981,7 @@ export async function quoteTrip(pickupInput: unknown, dropoffInput: unknown) {
         distanceM: planned.distanceM,
         durationS: planned.durationS,
         nearest: supply.nearest,
+        tariff,
       }).map((quote) => ({
         ...quote,
         sereneAvailable: supply.serene[quote.category] === true,
@@ -889,7 +1010,14 @@ export async function createRide(input: {
       [input.riderId],
     )
     if (active[0]) throw new ApiError("Vous avez déjà une course en cours.")
-    const priced = priceRoute(category, planned.distanceM, planned.durationS, pickup, dropoff, now())
+    const space = await accountOf(sql, input.riderId)
+    if (!space.features.course) throw new ApiError("Les courses sont fermées sur ce compte.")
+    if (input.serene && !space.features.serein) throw new ApiError("Trajet Serein est fermé sur ce compte.")
+    const tariff = await loadTariff(sql)
+    const priced = priceRoute(category, planned.distanceM, planned.durationS, pickup, dropoff, now(), tariff)
+    if (space.features.plafond > 0 && priced.fare > space.features.plafond) {
+      throw new ApiError("Cette course dépasse le plafond du compte.")
+    }
     const supply = await nearestByCategory(sql, pickup)
     const quote = quoteAll({
       pickup,
@@ -898,6 +1026,7 @@ export async function createRide(input: {
       distanceM: planned.distanceM,
       durationS: planned.durationS,
       nearest: supply.nearest,
+      tariff,
     }).find((item) => item.category === category)
     if (input.serene && !input.exclusiveDriverId && !supply.serene[category]) {
       throw new ApiError("Aucun chauffeur Trajet Serein n’est libre à proximité. Décochez l’option, ou changez de catégorie.")
@@ -1125,10 +1254,16 @@ export async function driverAct(userId: string, action: string, extra?: { lat?: 
   }
   if (action === "location" && typeof extra?.lat === "number" && typeof extra?.lng === "number") {
     await withDb(async (sql) => {
-      await sql.query(`update drivers set lat = $2, lng = $3 where user_id = $1 and bot = false`, [
+      const current = await sql.query(`select lat, lng from drivers where user_id = $1 and bot = false`, [userId])
+      const previous = current[0]
+      const heading = previous
+        ? bearingDeg({ lat: num(previous.lat), lng: num(previous.lng) }, { lat: extra.lat as number, lng: extra.lng as number })
+        : 0
+      await sql.query(`update drivers set lat = $2, lng = $3, heading = $4 where user_id = $1 and bot = false`, [
         userId,
         extra.lat,
         extra.lng,
+        heading,
       ])
     })
     return driverDesk(userId)
@@ -1237,11 +1372,12 @@ export async function publishCarpool(input: {
     throw new ApiError("Le départ doit être au moins 30 minutes dans le futur.")
   }
   const measured = measureFallback(origin, destination)
-  const suggestion = suggestSeatPrice(origin.city, destination.city, measured.distanceM / 1000)
-  const band = priceBandError(input.price, suggestion)
-  if (band) throw new ApiError(band)
   const amenities = input.amenities.filter((item) => AMENITIES.includes(item))
   return withDb(async (sql) => {
+    const tariff = await loadTariff(sql)
+    const suggestion = suggestSeatPrice(origin.city, destination.city, measured.distanceM / 1000, tariff.corridors)
+    const band = priceBandError(input.price, suggestion)
+    if (band) throw new ApiError(band)
     const driver = await driverById(sql, input.driverId)
     if (!driver || driver.kyc !== "verified") {
       throw new ApiError("Publiez un départ une fois votre véhicule vérifié.")
@@ -1433,11 +1569,14 @@ export async function suggestPrice(origin: unknown, destination: unknown) {
   const from = point(origin, "le départ")
   const to = point(destination, "l’arrivée")
   const measured = (await import("@/lib/domain")).measureFallback(from, to)
-  return {
-    price: suggestSeatPrice(from.city, to.city, measured.distanceM / 1000),
-    distanceM: measured.distanceM,
-    durationS: measured.durationS,
-  }
+  return withDb(async (sql) => {
+    const tariff = await loadTariff(sql)
+    return {
+      price: suggestSeatPrice(from.city, to.city, measured.distanceM / 1000, tariff.corridors),
+      distanceM: measured.distanceM,
+      durationS: measured.durationS,
+    }
+  })
 }
 
 async function assertAdmin(sql: Sql, userId: string) {
@@ -1482,7 +1621,7 @@ export async function adminDesk(userId: string) {
         vehicle: `${text(row.color)} ${text(row.make)} ${text(row.model)}`,
         category: text(row.category),
       })),
-      corridors: corridors(),
+      tariff: await loadTariff(sql),
       disputes: disputes.map((row) => ({
         id: text(row.id),
         pickup: text(row.pickup_label),
@@ -1496,7 +1635,24 @@ export async function adminDesk(userId: string) {
   })
 }
 
-export async function adminAct(userId: string, action: string, targetId: string) {
+export async function adminAct(
+  userId: string,
+  action: string,
+  targetId: string,
+  extra?: { tariff?: unknown },
+) {
+  if (action === "tariff") {
+    const tariff = sanitizeTariff(extra?.tariff)
+    await withDb(async (sql) => {
+      await assertAdmin(sql, userId)
+      await sql.query(
+        `insert into settings (key, value_json) values ('tariff', $1)
+         on conflict (key) do update set value_json = excluded.value_json`,
+        [JSON.stringify(tariff)],
+      )
+    })
+    return adminDesk(userId)
+  }
   await withDb(async (sql) => {
     await assertAdmin(sql, userId)
     if (action !== "approve") throw new ApiError("Action inconnue.")

@@ -101,9 +101,11 @@ export function BookRide({
     [classes, category],
   )
   const sereneBlocked = Boolean(serene && selected && !selected.sereneAvailable)
+  const overCap = Boolean(me?.features.plafond && selected?.fare && selected.fare > me.features.plafond)
   const canPay =
     Boolean(selected?.available) &&
     !sereneBlocked &&
+    !overCap &&
     (method !== "wallet" || (me?.balance ?? 0) >= (selected?.fare ?? Infinity))
 
   async function confirm() {
@@ -224,13 +226,15 @@ export function BookRide({
                 ))}
               </div>
             )}
-            <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
-              <span>
-                <span className="block font-medium">Trajet Serein</span>
-                <span className="block text-sm opacity-80">Conductrice seulement.</span>
-              </span>
-              <Switch checked={serene} onCheckedChange={setSerene} aria-label="Trajet Serein" />
-            </div>
+            {me?.features.serein !== false ? (
+              <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
+                <span>
+                  <span className="block font-medium">Trajet Serein</span>
+                  <span className="block text-sm opacity-80">Conductrice seulement.</span>
+                </span>
+                <Switch checked={serene} onCheckedChange={setSerene} aria-label="Trajet Serein" />
+              </div>
+            ) : null}
             {sereneBlocked ? <p className="text-sm text-destructive">Aucune conductrice libre près de toi.</p> : null}
             {selected?.surgeLabel ? <p className="text-sm text-muted-foreground">{selected.surgeLabel}</p> : null}
             <Button size="xl" disabled={!selected?.available || sereneBlocked} onClick={() => setStep(2)}>
@@ -250,6 +254,9 @@ export function BookRide({
             <PayPicker value={method} onChange={setMethod} balance={me?.balance ?? 0} />
             {method === "wallet" && selected.fare && (me?.balance ?? 0) < selected.fare ? (
               <p className="text-sm text-destructive">Solde trop bas. Passe en espèces.</p>
+            ) : null}
+            {me?.features.plafond && selected.fare && selected.fare > me.features.plafond ? (
+              <p className="text-sm text-destructive">Cette course dépasse le plafond du compte.</p>
             ) : null}
             <Button size="xl" disabled={!canPay || busy} onClick={() => void confirm()}>
               {busy ? "Confirmation…" : `Confirmer · ${selected.fare ? fcfa(selected.fare) : ""}`}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   approachSeconds,
+  defaultTariff,
   cancelFee,
   carpoolRefund,
   CATEGORIES,
@@ -38,6 +39,13 @@ test("fixe un prix Éco Plateau–Almadies sans surprise de pointe", () => {
   assert.ok(price.fare >= 3000 && price.fare <= 7000)
   assert.equal(price.driverNet, price.fare - price.commission)
   assert.equal(price.commission, Math.round(price.fare * CATEGORIES.eco.commission))
+})
+
+test("une grille enregistrée change la commission", () => {
+  const tariff = defaultTariff()
+  tariff.eco.commission = 0.2
+  const priced = priceRoute("eco", 14_000, 32 * 60, plateau, almadies, tuesday, tariff)
+  assert.equal(priced.commission, Math.round(priced.fare * 0.2))
 })
 
 test("ajoute le forfait aéroport et bloque le Jakarta", () => {

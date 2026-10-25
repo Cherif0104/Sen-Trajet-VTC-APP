@@ -10,6 +10,9 @@ type Props = {
   dropoff?: Point | null
   driver?: Point | null
   route?: [number, number][]
+  nearby?: Point[]
+  heading?: number | null
+  radar?: boolean
 }
 
 function paint(
@@ -35,9 +38,34 @@ function paint(
     }).addTo(group)
     bounds.push([point.lat, point.lng])
   }
+  if (props.radar && props.pickup) {
+    L.circle([props.pickup.lat, props.pickup.lng], {
+      radius: 450,
+      color: "#FF4D2A",
+      weight: 1,
+      fillColor: "#FF4D2A",
+      fillOpacity: 0.08,
+    }).addTo(group)
+    L.circle([props.pickup.lat, props.pickup.lng], {
+      radius: 950,
+      color: "#FF4D2A",
+      weight: 1,
+      fillOpacity: 0.04,
+    }).addTo(group)
+  }
+  for (const car of props.nearby ?? []) dot(car, "#121417", 5)
   if (props.pickup) dot(props.pickup, "#FF4D2A", 8)
   if (props.dropoff) dot(props.dropoff, "#121417", 8)
-  if (props.driver) dot(props.driver, "#FF4D2A", 7)
+  if (props.driver && typeof props.heading === "number") {
+    const icon = L.divIcon({
+      className: "st-heading",
+      html: `<div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:16px solid #FF4D2A;transform:rotate(${props.heading}deg)"></div>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    })
+    L.marker([props.driver.lat, props.driver.lng], { icon, interactive: false }).addTo(group)
+    bounds.push([props.driver.lat, props.driver.lng])
+  } else if (props.driver) dot(props.driver, "#FF4D2A", 7)
   if (fit && bounds.length > 0) {
     const single = !props.dropoff && !(props.route && props.route.length > 1)
     map.fitBounds(L.latLngBounds(bounds), {

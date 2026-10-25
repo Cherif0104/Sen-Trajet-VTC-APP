@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { FleetBadge } from "@/components/demo-indicator"
+import { useMe } from "@/components/use-me"
 import { PlaceField } from "@/components/place-field"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -16,6 +17,7 @@ import { AMENITY_LABELS, dakarOffsetDate, fcfa, formatDay, formatTime, seatsLabe
 import { placeById, toPoint, type GeoPoint } from "@/lib/places"
 
 export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: string; date?: string }) {
+  const { me } = useMe()
   const originPlace = placeById(fromId ?? "baux")
   const destPlace = placeById(toId ?? "thies")
   const [origin, setOrigin] = useState<GeoPoint | null>(originPlace ? toPoint(originPlace) : null)
@@ -43,6 +45,15 @@ export function CarpoolSearch({ fromId, toId, date }: { fromId?: string; toId?: 
   }, [origin, destination, day, seats])
 
   const days = [0, 1, 2].map((offset) => dakarOffsetDate(offset))
+
+  if (me?.features.sieges === false) {
+    return (
+      <div className="flex flex-col gap-3 px-4 py-8">
+        <h1 className="font-display text-4xl">Sièges</h1>
+        <p className="text-muted-foreground">Les sièges sont fermés sur ce compte.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6">

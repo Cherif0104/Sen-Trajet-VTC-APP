@@ -19,6 +19,9 @@ export async function handle(work: () => Promise<unknown>) {
       return Response.json({ error: error.message }, { status: error.status })
     }
     console.error(error)
+    if (error instanceof Error && error.message.includes("DATABASE_URL")) {
+      return Response.json({ error: error.message }, { status: 503 })
+    }
     return Response.json(
       { error: "Une erreur est survenue. Réessayez dans un instant." },
       { status: 500 },

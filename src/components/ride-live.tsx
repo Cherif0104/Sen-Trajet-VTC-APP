@@ -19,6 +19,7 @@ import {
 import { api } from "@/lib/client"
 import { PAY_METHODS } from "@/lib/domain"
 import type { RideDTO } from "@/lib/dto"
+import { headingLabel } from "@/lib/domain"
 import { fcfa, formatKm, formatMinutes, rideStatusLabel } from "@/lib/format"
 import { cn } from "cn"
 
@@ -124,7 +125,7 @@ export function RideLive({ id }: { id: string }) {
                 ? "Course terminée."
                 : "Recherche d’un passager."
       : ride.status === "matching"
-        ? "On cherche un chauffeur."
+        ? "On cherche autour de toi."
         : ride.status === "accepted"
           ? `${driverFirst ?? "Votre chauffeur"} arrive${mins ? ` dans ${mins}` : ""}`
           : ride.status === "arrived"
@@ -140,7 +141,15 @@ export function RideLive({ id }: { id: string }) {
     <div className={cn("relative min-h-dvh", terminal && "bg-background")}>
       {terminal ? null : (
         <div className="absolute inset-0 z-0">
-          <RideMap pickup={ride.pickup} dropoff={ride.dropoff} driver={ride.driverPoint} route={ride.route} />
+          <RideMap
+            pickup={ride.pickup}
+            dropoff={ride.leg === "trip" ? ride.dropoff : null}
+            driver={ride.driverPoint}
+            route={ride.route}
+            nearby={ride.nearby}
+            heading={ride.heading}
+            radar={ride.leg === "radar"}
+          />
         </div>
       )}
       <div
@@ -156,9 +165,15 @@ export function RideLive({ id }: { id: string }) {
         <div className="flex flex-col gap-2">
           <p className="font-display text-3xl text-balance">{headline}</p>
           <p className="text-sm text-muted-foreground">
-            {ride.status === "in_progress" && mins
-              ? `${mins} · prix fixé`
-              : `${ride.pickup.label} → ${ride.dropoff.label}`}
+            {ride.status === "matching"
+              ? ride.nearby.length > 0
+                ? `${ride.nearby.length} ${ride.nearby.length > 1 ? "voitures" : "voiture"} dans le rayon. Personne n’est assigné.`
+                : "Personne dans le rayon pour l’instant."
+              : ride.status === "accepted" && ride.heading != null
+                ? `Cap ${headingLabel(ride.heading)} · le trait est sa route jusqu’à toi.`
+                : ride.status === "in_progress" && mins
+                  ? `${mins} · prix fixé`
+                  : `${ride.pickup.label} → ${ride.dropoff.label}`}
           </p>
           {active ? <p className="font-display text-4xl tabular-nums">{fcfa(ride.fare)}</p> : null}
           {active ? <Progress value={Math.round(ride.progress * 100)} /> : null}

@@ -170,3 +170,16 @@ alter table transactions enable row level security;
 alter table notifications enable row level security;
 
 alter table users add column if not exists role text not null default 'rider';
+alter table users add column if not exists account_type text not null default 'particulier';
+alter table users add column if not exists company_name text not null default '';
+alter table users add column if not exists features_json text not null default '';
+alter table users add column if not exists places_json text not null default '[]';
+alter table drivers add column if not exists heading double precision not null default 0;
+alter table rides add column if not exists approach_json text not null default '[]';
+
+create table if not exists settings (
+  key text primary key,
+  value_json text not null
+);
+
+alter table settings enable row level security;

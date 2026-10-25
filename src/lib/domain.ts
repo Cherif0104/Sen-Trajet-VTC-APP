@@ -178,6 +178,123 @@ export function surgeFor(at: Date, pickup: LatLng) {
   return { multiplier, label }
 }
 
+export type ClassRate = {
+  base: number
+  perKm: number
+  perMin: number
+  minimum: number
+  commission: number
+}
+
+export type Tariff = {
+  eco: ClassRate
+  confort: ClassRate
+  confort_plus: ClassRate
+  airportFee: number
+  corridors: { a: string; b: string; price: number }[]
+}
+
+export type ClientFeatures = {
+  course: boolean
+  sieges: boolean
+  lieux: boolean
+  facture: boolean
+  plafond: number
+  serein: boolean
+}
+
+function classRate(id: "eco" | "confort" | "confort_plus"): ClassRate {
+  const cat = CATEGORIES[id]
+  return { base: cat.base, perKm: cat.perKm, perMin: cat.perMin, minimum: cat.minimum, commission: cat.commission }
+}
+
+export function defaultTariff(): Tariff {
+  return {
+    eco: classRate("eco"),
+    confort: classRate("confort"),
+    confort_plus: classRate("confort_plus"),
+    airportFee: 1500,
+    corridors: corridors(),
+  }
+}
+
+function money(value: unknown, fallback: number, max = 1_000_000) {
+  const next = Number(value)
+  if (!Number.isFinite(next) || next < 0 || next > max) return fallback
+  return next
+}
+
+export function sanitizeTariff(value: unknown): Tariff {
+  const base = defaultTariff()
+  if (!value || typeof value !== "object") return base
+  const raw = value as Partial<Tariff>
+  const rate = (id: "eco" | "confort" | "confort_plus"): ClassRate => {
+    const item = raw[id]
+    if (!item) return base[id]
+    const commission = money(item.commission, base[id].commission, 0.5)
+    return {
+      base: money(item.base, base[id].base),
+      perKm: money(item.perKm, base[id].perKm),
+      perMin: money(item.perMin, base[id].perMin),
+      minimum: money(item.minimum, base[id].minimum),
+      commission,
+    }
+  }
+  const source = Array.isArray(raw.corridors) ? raw.corridors : base.corridors
+  return {
+    eco: rate("eco"),
+    confort: rate("confort"),
+    confort_plus: rate("confort_plus"),
+    airportFee: Math.round(money(raw.airportFee, base.airportFee, 20_000)),
+    corridors: source
+      .slice(0, 20)
+      .map((item) => ({
+        a: String(item?.a ?? "").slice(0, 40),
+        b: String(item?.b ?? "").slice(0, 40),
+        price: Math.round(money(item?.price, 0, 100_000)),
+      }))
+      .filter((item) => item.a && item.b && item.price > 0),
+  }
+}
+
+export function defaultFeatures(account: "particulier" | "entreprise"): ClientFeatures {
+  if (account === "entreprise") {
+    return { course: true, sieges: false, lieux: true, facture: true, plafond: 80_000, serein: false }
+  }
+  return { course: true, sieges: true, lieux: true, facture: false, plafond: 0, serein: true }
+}
+
+export function sanitizeFeatures(value: unknown, account: "particulier" | "entreprise"): ClientFeatures {
+  const base = defaultFeatures(account)
+  if (!value || typeof value !== "object") return base
+  const raw = value as Partial<ClientFeatures>
+  const on = (key: "course" | "sieges" | "lieux" | "facture" | "serein") =>
+    typeof raw[key] === "boolean" ? raw[key] : base[key]
+  return {
+    course: on("course"),
+    sieges: on("sieges"),
+    lieux: on("lieux"),
+    facture: on("facture"),
+    serein: on("serein"),
+    plafond: Math.round(money(raw.plafond, base.plafond, 10_000_000)),
+  }
+}
+
+export function bearingDeg(a: LatLng, b: LatLng) {
+  const lat1 = (a.lat * Math.PI) / 180
+  const lat2 = (b.lat * Math.PI) / 180
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180
+  const y = Math.sin(dLng) * Math.cos(lat2)
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng)
+  return (Math.atan2(y, x) * 180) / Math.PI
+}
+
+export function headingLabel(deg: number) {
+  const names = ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"]
+  const turn = ((deg % 360) + 360) % 360
+  return names[Math.round(turn / 45) % 8]
+}
+
 export function priceRoute(
   category: CategoryId,
   distanceM: number,
@@ -185,17 +302,26 @@ export function priceRoute(
   pickup: LatLng,
   dropoff: LatLng,
   at: Date,
+  tariff?: Tariff,
 ) {
   const cat = CATEGORIES[category]
+  const tuned =
+    tariff && (category === "eco" || category === "confort" || category === "confort_plus") ? tariff[category] : null
+  const base = tuned?.base ?? cat.base
+  const perKm = tuned?.perKm ?? cat.perKm
+  const perMin = tuned?.perMin ?? cat.perMin
+  const minimum = tuned?.minimum ?? cat.minimum
+  const commissionRate = tuned?.commission ?? cat.commission
   const km = distanceM / 1000
   const minutes = durationS / 60
   const surge = surgeFor(at, pickup)
   const airport = isAirport(pickup) || isAirport(dropoff)
-  let raw = (cat.base + km * cat.perKm + minutes * cat.perMin) * surge.multiplier
-  if (airport && category === "van") raw += 2500
-  else if (airport && category !== "jakarta") raw += 1500
-  const fare = Math.max(cat.minimum, roundTo(raw, 50))
-  const commission = Math.round(fare * cat.commission)
+  let raw = (base + km * perKm + minutes * perMin) * surge.multiplier
+  const airportFee = tariff?.airportFee ?? 1500
+  if (airport && category === "van") raw += tariff ? airportFee + 1000 : 2500
+  else if (airport && category !== "jakarta") raw += airportFee
+  const fare = Math.max(minimum, roundTo(raw, 50))
+  const commission = Math.round(fare * commissionRate)
   let surgeLabel = surge.label
   if (airport) {
     surgeLabel = surgeLabel ? `${surgeLabel} · forfait aéroport` : "Forfait aéroport inclus"
@@ -245,6 +371,7 @@ export function quoteAll(input: {
   distanceM: number
   durationS: number
   nearest: Partial<Record<CategoryId, { km: number; bot: boolean } | null>>
+  tariff?: Tariff
 }): Quote[] {
   const km = input.distanceM / 1000
   const tooShort = km < 0.35
@@ -257,6 +384,7 @@ export function quoteAll(input: {
       input.pickup,
       input.dropoff,
       input.at,
+      input.tariff,
     )
     const nearest = input.nearest[category]
     let reason: string | undefined
@@ -370,10 +498,15 @@ export function norm(value: string) {
     .trim()
 }
 
-export function suggestSeatPrice(originCity: string, destCity: string, distanceKm: number) {
+export function suggestSeatPrice(
+  originCity: string,
+  destCity: string,
+  distanceKm: number,
+  bands?: { a: string; b: string; price: number }[],
+) {
   const origin = norm(originCity)
   const dest = norm(destCity)
-  for (const corridor of CORRIDORS) {
+  for (const corridor of bands ?? CORRIDORS) {
     if (
       (origin.includes(corridor.a) && dest.includes(corridor.b)) ||
       (origin.includes(corridor.b) && dest.includes(corridor.a))

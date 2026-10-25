@@ -45,8 +45,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         </header>
         <div className={cn("flex flex-1 flex-col", mapHome && "relative min-h-0")}>{children}</div>
         <nav className="sticky bottom-0 z-30 mt-auto border-t border-border bg-background/95 backdrop-blur">
-          <ul className="mx-auto grid max-w-lg grid-cols-4">
-            {links.map((link) => {
+          <ul className={`mx-auto grid max-w-lg ${me?.features.sieges === false ? "grid-cols-3" : "grid-cols-4"}`}>
+            {links.filter((link) => link.href !== "/app/covoiturage" || me?.features.sieges !== false).map((link) => {
               const active = link.href === "/app" ? pathname === "/app" : pathname.startsWith(link.href)
               const Icon = link.icon
               return (

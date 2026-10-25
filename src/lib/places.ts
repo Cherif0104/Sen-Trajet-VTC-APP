@@ -1,9 +1,12 @@
 import { norm, type LatLng } from "@/lib/domain"
 
+export type PlaceKind = "ville" | "quartier" | "pharmacie" | "ecole" | "commerce" | "rue"
+
 export type GeoPoint = LatLng & {
   label: string
   city: string
   area?: string
+  kind?: PlaceKind
 }
 
 export type CatalogPlace = GeoPoint & { id: string }
@@ -76,5 +79,6 @@ export function toPoint(place: CatalogPlace): GeoPoint {
     area: place.area,
     lat: place.lat,
     lng: place.lng,
+    kind: norm(place.city) === "dakar" ? "quartier" : "ville",
   }
 }

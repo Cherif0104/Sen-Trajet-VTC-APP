@@ -16,27 +16,28 @@ const lieux = carte.lieux as Lieu[]
 export const SENEGAL_REGIONS = carte.regions
 
 function toPoint(lieu: Lieu, lat = lieu.lat, lng = lieu.lng, label = lieu.name): GeoPoint {
-  return { label, city: lieu.name, area: lieu.region, lat, lng }
+  return { label, city: lieu.name, area: lieu.region, lat, lng, kind: "ville" }
 }
 
 export function searchLieux(query: string): GeoPoint[] {
   const needle = norm(query)
   if (needle.length < 2) return []
-  return lieux
+  const ranked = lieux
     .map((lieu) => {
       const name = norm(lieu.name)
       const region = norm(lieu.region)
       let score = 0
       if (name === needle) score = 100
-      else if (region === needle) score = 90
       else if (name.startsWith(needle)) score = 80
+      else if (region === needle) score = 60
       else if (name.includes(needle) || `region de ${region}` === needle || region.includes(needle)) score = 40
       return { lieu, score }
     })
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || b.lieu.population - a.lieu.population || a.lieu.name.localeCompare(b.lieu.name, "fr"))
-    .slice(0, 6)
-    .map(({ lieu }) => toPoint(lieu))
+  const primary = ranked.filter((item) => item.score >= 80)
+  const extra = ranked.filter((item) => item.score < 80).slice(0, 2)
+  return [...primary, ...extra].slice(0, 6).map(({ lieu }) => toPoint(lieu))
 }
 
 export function nearestLieu(lat: number, lng: number, maxKm = 30): GeoPoint | null {

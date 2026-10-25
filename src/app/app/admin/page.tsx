@@ -5,7 +5,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { api } from "@/lib/client"
-import { CATEGORIES, type CategoryId } from "@/lib/domain"
+import { CATEGORIES, type CategoryId, type Tariff } from "@/lib/domain"
 import { fcfa, formatWhen } from "@/lib/format"
 
 type Desk = {
@@ -19,7 +19,7 @@ type Desk = {
     createdAt: string
   }[]
   drivers: { id: string; name: string; phone: string; plate: string; vehicle: string; category: string }[]
-  corridors: { a: string; b: string; price: number }[]
+  tariff: Tariff
   disputes: { id: string; pickup: string; dropoff: string; reason: string; by: string; fare: number; method: string }[]
 }
 
@@ -34,6 +34,7 @@ export default function AdminPage() {
   const [desk, setDesk] = useState<Desk | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [tariff, setTariff] = useState<Tariff | null>(null)
 
   useEffect(() => {
     let stop = false
@@ -42,6 +43,7 @@ export default function AdminPage() {
         const next = await api<Desk>("/api/admin")
         if (!stop) {
           setDesk(next)
+          setTariff((current) => current ?? next.tariff)
           setError(null)
         }
       } catch (caught) {
@@ -126,17 +128,96 @@ export default function AdminPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-display text-2xl">Couloirs</h2>
-        <p className="text-sm text-muted-foreground">Prix suggéré par siège. Hypothèse, pas une grille signée.</p>
-        {desk.corridors.map((corridor) => (
-          <div key={`${corridor.a}-${corridor.b}`} className="flex items-center justify-between rounded-2xl bg-muted px-4 py-3 text-sm">
-            <span className="capitalize">
-              {corridor.a} ↔ {corridor.b}
-            </span>
-            <span>{fcfa(corridor.price)}</span>
-          </div>
-        ))}
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-2xl">Zones et prix</h2>
+        <p className="text-sm text-muted-foreground">
+          La grille nationale et les sièges. Ces montants restent des hypothèses tant qu’ils ne sont pas signés.
+        </p>
+        {tariff ? (
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={(event) => {
+              event.preventDefault()
+              setBusy("tariff")
+              void api<Desk>("/api/admin", { method: "POST", body: JSON.stringify({ action: "tariff", tariff }) })
+                .then((next) => {
+                  setDesk(next)
+                  setTariff(next.tariff)
+                  toast.success("Grille enregistrée.")
+                })
+                .catch((caught: unknown) => toast.error(caught instanceof Error ? caught.message : "Enregistrement impossible."))
+                .finally(() => setBusy(null))
+            }}
+          >
+            {(["eco", "confort", "confort_plus"] as const).map((id) => (
+              <div key={id} className="grid grid-cols-2 gap-2 rounded-2xl bg-muted px-4 py-3">
+                <p className="col-span-2 font-medium">{CATEGORIES[id].label}</p>
+                <label className="text-sm text-muted-foreground">
+                  Base
+                  <input
+                    className="mt-1 w-full rounded-full bg-background px-3 py-2 text-foreground"
+                    inputMode="numeric"
+                    value={tariff[id].base}
+                    onChange={(event) =>
+                      setTariff({ ...tariff, [id]: { ...tariff[id], base: Number(event.target.value) } })
+                    }
+                  />
+                </label>
+                <label className="text-sm text-muted-foreground">
+                  FCFA / km
+                  <input
+                    className="mt-1 w-full rounded-full bg-background px-3 py-2 text-foreground"
+                    inputMode="numeric"
+                    value={tariff[id].perKm}
+                    onChange={(event) =>
+                      setTariff({ ...tariff, [id]: { ...tariff[id], perKm: Number(event.target.value) } })
+                    }
+                  />
+                </label>
+                <label className="col-span-2 text-sm text-muted-foreground">
+                  Commission, de 0 à 0,5
+                  <input
+                    className="mt-1 w-full rounded-full bg-background px-3 py-2 text-foreground"
+                    inputMode="decimal"
+                    value={tariff[id].commission}
+                    onChange={(event) =>
+                      setTariff({ ...tariff, [id]: { ...tariff[id], commission: Number(event.target.value) } })
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+            <label className="text-sm text-muted-foreground">
+              Forfait aéroport, FCFA
+              <input
+                className="mt-1 w-full rounded-full bg-background px-3 py-2 text-foreground"
+                inputMode="numeric"
+                value={tariff.airportFee}
+                onChange={(event) => setTariff({ ...tariff, airportFee: Number(event.target.value) })}
+              />
+            </label>
+            {tariff.corridors.map((corridor, index) => (
+              <label key={`${corridor.a}-${corridor.b}`} className="flex items-center justify-between gap-3 text-sm">
+                <span className="capitalize">
+                  {corridor.a} ↔ {corridor.b}
+                </span>
+                <input
+                  className="w-28 rounded-full bg-muted px-3 py-2 text-right"
+                  inputMode="numeric"
+                  value={corridor.price}
+                  onChange={(event) => {
+                    const corridors = tariff.corridors.slice()
+                    corridors[index] = { ...corridor, price: Number(event.target.value) }
+                    setTariff({ ...tariff, corridors })
+                  }}
+                />
+              </label>
+            ))}
+            <Button type="submit" size="lg" disabled={busy === "tariff"}>
+              Enregistrer la zone
+            </Button>
+          </form>
+        ) : null}
       </section>
 
       <section className="flex flex-col gap-2">
