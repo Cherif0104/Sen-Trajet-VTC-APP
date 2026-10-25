@@ -24,8 +24,12 @@ export function ConnexionForm({ next, tab }: { next: string; tab?: string }) {
     try {
       await api(path, { method: "POST", body: JSON.stringify(body) })
       const me = await api<MeDTO>("/api/me")
-      const home = me.role === "admin" ? "/app/admin" : me.driver ? "/app/chauffeur" : "/app"
-      router.replace(destination === "/app" ? home : destination)
+      const driver = me.role !== "admin" && Boolean(me.driver)
+      const home = me.role === "admin" ? "/app/admin" : driver ? "/app/chauffeur" : "/app"
+      const fits =
+        destination !== "/app" &&
+        (destination.startsWith("/chauffeur/") || destination.startsWith("/app/chauffeur") === driver)
+      router.replace(fits ? destination : home)
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Connexion impossible.")
