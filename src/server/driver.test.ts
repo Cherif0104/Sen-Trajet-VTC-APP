@@ -97,4 +97,30 @@ test("une offre ignorée revient au chauffeur, un refus l’exclut", async () =>
   await services.driverAct(driverId, "decline")
   assert.equal((await services.driverDesk(driverId)).offer, null)
   assert.equal((await services.syncRide(ride.id, riderId)).status, "matching")
+  await services.actOnRide(riderId, ride.id, "cancel")
+})
+
+test("une course en attente part au chauffeur qui passe en ligne après la commande", async () => {
+  const services = await import("./services")
+  const { setNow } = await import("./clock")
+  setNow(() => new Date("2026-10-27T12:00:00.000Z"))
+
+  const driverId = await services.login("ibrahima.sarr@example.sn", "Chauffeur2026!")
+  await services.setDriverOnline(driverId, false)
+  const riderId = await services.login("awa.ndiaye@yoon.sn", "Yoon2026!")
+  const ride = await services.createRide({
+    riderId,
+    pickup: { label: "Thiès", city: "Thiès", lat: 14.78944, lng: -16.92602 },
+    dropoff: { label: "Avenue Lat Dior", city: "Thiès", lat: 14.7967, lng: -16.9295 },
+    category: "confort",
+    method: "cash",
+    serene: false,
+  })
+  assert.equal(ride.status, "matching")
+
+  setNow(() => new Date("2026-10-27T12:01:00.000Z"))
+  await services.setDriverOnline(driverId, true)
+  assert.equal((await services.driverDesk(driverId)).offer?.id, ride.id)
+  await services.driverAct(driverId, "accept")
+  assert.equal((await services.syncRide(ride.id, riderId)).status, "accepted")
 })

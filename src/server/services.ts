@@ -526,7 +526,23 @@ async function applyRide(sql: Sql, rideId: string) {
     await cancelRide(sql, ride, "system", "Absence au point de prise en charge. Des frais d’attente ont été retenus.", cancelFee(ride.fare))
     return
   }
-  if (projection.event === "completed") await settleRide(sql, ride)
+  if (projection.event === "completed") {
+    await settleRide(sql, ride)
+    return
+  }
+  if (ride.status === "matching" && !ride.offeredDriverId) await dispatchRide(sql, ride.id)
+}
+
+async function offerWaitingRides(sql: Sql, driver: DriverFull) {
+  if (!driver.online || driver.busy || driver.bot || driver.kyc !== "verified") return
+  const waiting = await sql.query<{ id: string }>(
+    `select id from rides
+     where status = 'matching' and offered_driver_id is null and category = $1
+       and created_at > now() - interval '30 minutes'
+     order by created_at limit 5`,
+    [driver.category],
+  )
+  for (const row of waiting) await dispatchRide(sql, row.id)
 }
 
 async function presentRide(sql: Sql, id: string, viewerId: string): Promise<RideDTO> {
@@ -1303,6 +1319,7 @@ export async function driverDesk(userId: string) {
   return withDb(async (sql) => {
     const driver = await driverById(sql, userId)
     if (!driver) throw new ApiError("Activez d’abord votre profil chauffeur.")
+    await offerWaitingRides(sql, driver)
     const offer = await sql.query<{ id: string }>(
       `select id from rides where offered_driver_id = $1 and status = 'matching' limit 1`,
       [userId],
