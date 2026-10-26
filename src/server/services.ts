@@ -1340,8 +1340,8 @@ export async function driverDesk(userId: string) {
     )
     const start = `${dakarDate(now())}T00:00:00.000Z`
     const earned = await sql.query(
-      `select coalesce(sum(amount_xof),0) as net from transactions
-       where user_id = $1 and created_at >= $2 and type in ('ride_earning','carpool_earning','commission') and affects_balance = true`,
+      `select coalesce(sum(driver_net_xof),0) as net from rides
+       where driver_id = $1 and status = 'completed' and completed_at >= $2`,
       [userId, start],
     )
     const fresh = await driverById(sql, userId)

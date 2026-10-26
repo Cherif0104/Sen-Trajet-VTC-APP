@@ -143,7 +143,7 @@ export default function DriverPage() {
       ) : null}
 
       <div className="rounded-3xl border border-border bg-card px-5 py-4">
-        <p className="text-sm text-muted-foreground">Net du jour, heure de Dakar</p>
+        <p className="text-sm text-muted-foreground">Gagné aujourd’hui, commission déduite</p>
         <p className="font-display text-4xl tabular-nums">{fcfa(desk.earningsToday)}</p>
         <Link href="/app/chauffeur/solde" className="mt-2 flex justify-between text-sm text-muted-foreground">
           <span>Solde chauffeur</span>
