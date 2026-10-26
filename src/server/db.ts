@@ -26,7 +26,7 @@ async function open(): Promise<Driver> {
       sql: postgres(url, {
         prepare: false,
         ssl,
-        max: 1,
+        max: 5,
         onnotice: () => {},
       }),
     }
@@ -100,8 +100,11 @@ async function ready() {
   return opening
 }
 
-export function withDb<T>(fn: (sql: Sql) => Promise<T>) {
-  const run = queue.then(async () => withDriver(await ready(), fn))
+export async function withDb<T>(fn: (sql: Sql) => Promise<T>) {
+  const driver = await ready()
+  // PGlite has a single session, so its transactions must not interleave; Postgres gets one connection per transaction.
+  if (driver.kind === "pg") return withDriver(driver, fn)
+  const run = queue.then(() => withDriver(driver, fn))
   queue = run.then(
     () => undefined,
     () => undefined,
