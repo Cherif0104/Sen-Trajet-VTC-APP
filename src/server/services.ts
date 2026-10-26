@@ -444,18 +444,21 @@ async function acceptRide(sql: Sql, ride: Ride, driver: DriverFull) {
   )
 }
 
-async function dispatchRide(sql: Sql, rideId: string) {
+async function dispatchRide(sql: Sql, rideId: string, missedBy?: string) {
   const ride = await lockRide(sql, rideId)
   if (!ride || ride.status !== "matching") return
   const pool = forClients(await loadDrivers(sql, ride.category))
-  const ranked = rankDrivers({
-    drivers: pool,
-    pickup: ride.pickup,
-    category: ride.category,
-    serene: ride.serene,
-    exclude: ride.offered,
-  }).filter((item) => !ride.exclusiveDriverId || item.driver.id === ride.exclusiveDriverId)
-  const next = ranked[0]?.driver as DriverFull | undefined
+  const rank = (exclude: string[]) =>
+    rankDrivers({
+      drivers: pool,
+      pickup: ride.pickup,
+      category: ride.category,
+      serene: ride.serene,
+      exclude,
+    }).filter((item) => !ride.exclusiveDriverId || item.driver.id === ride.exclusiveDriverId)
+  // A driver who let the offer lapse gets it again when nobody else is in range; only an explicit decline excludes.
+  const ranked = missedBy ? rank([...ride.offered, missedBy]) : rank(ride.offered)
+  const next = (ranked[0] ?? (missedBy ? rank(ride.offered)[0] : undefined))?.driver as DriverFull | undefined
   if (!next) return
   if (next.bot && !ride.exclusiveDriverId) {
     await acceptRide(sql, ride, next)
@@ -469,8 +472,8 @@ async function dispatchRide(sql: Sql, rideId: string) {
   await notify(sql, next.id, "Course à proximité", `${ride.pickup.label} → ${ride.dropoff.label}`, "/app/chauffeur")
 }
 
-async function dropOffer(sql: Sql, ride: Ride) {
-  const offered = ride.offeredDriverId ? [...ride.offered, ride.offeredDriverId] : ride.offered
+async function dropOffer(sql: Sql, ride: Ride, declined: boolean) {
+  const offered = declined && ride.offeredDriverId ? [...ride.offered, ride.offeredDriverId] : ride.offered
   if (ride.offeredDriverId) {
     await sql.query(
       `update drivers set acceptance = greatest(0.4, acceptance - 0.05) where user_id = $1 and bot = false`,
@@ -487,7 +490,7 @@ async function dropOffer(sql: Sql, ride: Ride) {
     await cancelRide(sql, fresh, "driver", "Le chauffeur n’a pas pris la course.", 0)
     return
   }
-  await dispatchRide(sql, ride.id)
+  await dispatchRide(sql, ride.id, declined ? undefined : (ride.offeredDriverId ?? undefined))
 }
 
 async function applyRide(sql: Sql, rideId: string) {
@@ -508,7 +511,7 @@ async function applyRide(sql: Sql, rideId: string) {
     now(),
   )
   if (projection.event === "offer_expired") {
-    await dropOffer(sql, ride)
+    await dropOffer(sql, ride, false)
     return
   }
   if (projection.event === "arrived") {
@@ -1408,7 +1411,7 @@ export async function driverAct(userId: string, action: string, extra?: { lat?: 
       if (!offer[0]) throw new ApiError("Cette demande n’est plus là.")
       const ride = await lockRide(sql, offer[0].id)
       if (!ride) throw new ApiError("Cette demande n’est plus là.")
-      if (action === "decline") await dropOffer(sql, ride)
+      if (action === "decline") await dropOffer(sql, ride, true)
       else {
         const driver = await driverById(sql, userId)
         if (!driver) throw new ApiError("Profil chauffeur incomplet.")
