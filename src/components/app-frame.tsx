@@ -28,8 +28,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const focus = pathname.startsWith("/app/course")
   const mapHome = pathname === "/app"
   const { me } = useMe()
-  const driver = Boolean(me?.driver) && me?.role !== "admin"
   const inDriverSpace = pathname.startsWith("/app/chauffeur")
+  const driver = me ? Boolean(me.driver) && me.role !== "admin" : inDriverSpace
   const misplaced = me != null && !focus && driver !== inDriverSpace
 
   useEffect(() => {
