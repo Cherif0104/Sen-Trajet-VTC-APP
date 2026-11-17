@@ -28,6 +28,9 @@ function createRemoteDb(url: string): DB {
   const client = postgres(url, {
     max: Number(process.env.DB_POOL_MAX ?? 5),
     prepare: false,
+    // Supavisor (pooler Supabase, port 6543) bloque les requêtes envoyées en pipeline.
+    max_pipeline: 1,
+    query_timeout: 20,
     idle_timeout: 20,
     connect_timeout: 15,
   });

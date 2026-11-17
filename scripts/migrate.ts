@@ -21,7 +21,7 @@ async function main() {
     console.log("DATABASE_URL absent : migrations ignorées (la base locale PGlite se migre au démarrage).");
     return;
   }
-  const client = postgres(url, { max: 1, prepare: false, onnotice: () => {} });
+  const client = postgres(url, { max: 1, max_pipeline: 1, prepare: false, onnotice: () => {} });
   const db = drizzle(client, { schema }) as unknown as DB;
   try {
     await migrate(db, { migrationsFolder: "drizzle" });
