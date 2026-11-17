@@ -155,3 +155,46 @@ export async function renderCommercialPdf(input: PdfDocInput): Promise<Uint8Arra
   }
   return pdf.save();
 }
+
+export async function renderSummaryPdf(input: {
+  settings: SiteSettings;
+  from: string;
+  to: string;
+  sections: { title: string; rows: [string, string][] }[];
+}): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  const page = pdf.addPage([595.28, 841.89]);
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const { width, height } = page.getSize();
+  page.drawRectangle({ x: 0, y: height - 90, width, height: 90, color: INK });
+  page.drawText("SENTRAJET PREMIUM", { x: 40, y: height - 45, size: 18, font: bold, color: GOLD });
+  page.drawText(t(input.settings.company.legalName), { x: 40, y: height - 64, size: 9, font, color: rgb(1, 1, 1) });
+  page.drawText("SYNTHESE FINANCIERE", { x: width - 40 - bold.widthOfTextAtSize("SYNTHESE FINANCIERE", 13), y: height - 45, size: 13, font: bold, color: rgb(1, 1, 1) });
+  const per = t(`Periode du ${input.from.split("-").reverse().join("/")} au ${input.to.split("-").reverse().join("/")}`);
+  page.drawText(per, { x: width - 40 - font.widthOfTextAtSize(per, 9), y: height - 64, size: 9, font, color: rgb(1, 1, 1) });
+  let y = height - 130;
+  for (const s of input.sections) {
+    page.drawText(t(s.title), { x: 40, y, size: 12, font: bold, color: INK });
+    y -= 8;
+    page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1, color: GOLD });
+    y -= 18;
+    for (const [k, v] of s.rows) {
+      page.drawText(t(k), { x: 48, y, size: 10, font, color: GREY });
+      page.drawText(t(v), { x: width - 48 - font.widthOfTextAtSize(t(v), 10), y, size: 10, font: bold, color: INK });
+      y -= 18;
+    }
+    y -= 14;
+  }
+  page.drawRectangle({ x: 40, y: y - 30, width: width - 80, height: 34, color: LIGHT });
+  page.drawText(t("Document de gestion interne genere par la plateforme. Les montants de TVA sont indicatifs et doivent etre valides par un comptable."), {
+    x: 48,
+    y: y - 18,
+    size: 7.5,
+    font,
+    color: GREY,
+  });
+  return pdf.save();
+}
+
+export const formatMoney = money;

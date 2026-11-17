@@ -75,3 +75,25 @@ export function homeFor(role: string): string {
   if (role === "chauffeur") return "/chauffeur";
   return "/espace";
 }
+
+export const PERMISSION_LABELS: Record<Permission, string> = {
+  "dashboard.view": "Tableau de bord",
+  "requests.manage": "Demandes et réservations",
+  "quotes.manage": "Devis",
+  "missions.manage": "Missions",
+  "customers.manage": "Clients (CRM)",
+  "vehicles.manage": "Véhicules",
+  "catalog.manage": "Catégories et équipements",
+  "owners.manage": "Propriétaires partenaires",
+  "drivers.manage": "Chauffeurs",
+  "contracts.manage": "Contrats",
+  "invoices.manage": "Facturation",
+  "finance.manage": "Finances",
+  "reports.view": "Rapports et exports",
+  "maintenance.manage": "Maintenance",
+  "content.manage": "Contenus, partenaires, témoignages",
+  "messages.manage": "Messages",
+  "users.manage": "Utilisateurs et rôles",
+  "settings.manage": "Paramètres",
+  "audit.view": "Journal d'audit",
+};

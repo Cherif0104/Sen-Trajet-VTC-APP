@@ -81,20 +81,20 @@ export async function markAllNotificationsRead() {
   revalidatePath("/", "layout");
 }
 
-export async function respondToQuote(fd: FormData) {
+export async function respondToQuote(fd: FormData): Promise<{ ok: boolean; message: string }> {
   const user = await assertRole("client");
   const quoteId = String(fd.get("quoteId") ?? "");
   const decision = fd.get("decision") === "accept" ? "accepte" : "refuse";
   const db = await getDb();
   const ids = await myCustomerIds(user.id);
-  if (!ids.length) throw new Error("Devis introuvable.");
+  if (!ids.length) return { ok: false, message: "Devis introuvable." };
   const [q] = await db
     .select()
     .from(schema.quotes)
     .where(and(eq(schema.quotes.id, quoteId), inArray(schema.quotes.customerId, ids)))
     .limit(1);
-  if (!q || q.status !== "envoye") throw new Error("Ce devis ne peut plus être modifié.");
-  if (q.validUntil && q.validUntil < new Date().toISOString().slice(0, 10)) throw new Error("Ce devis a expiré.");
+  if (!q || q.status !== "envoye") return { ok: false, message: "Ce devis ne peut plus être modifié." };
+  if (q.validUntil && q.validUntil < new Date().toISOString().slice(0, 10)) return { ok: false, message: "Ce devis a expiré." };
 
   await db.transaction(async (tx) => {
     await tx.update(schema.quotes).set({ status: decision, respondedAt: new Date(), updatedAt: new Date() }).where(eq(schema.quotes.id, q.id));
@@ -114,6 +114,7 @@ export async function respondToQuote(fd: FormData) {
   });
   await audit(user.id, `quote.${decision}`, "quote", q.id, { number: q.number });
   revalidatePath("/espace", "layout");
+  return { ok: true, message: decision === "accepte" ? "Devis accepté. Notre équipe confirme votre réservation." : "Devis refusé." };
 }
 
 export async function submitTestimonial(_prev: ActionState, fd: FormData): Promise<ActionState> {
