@@ -182,7 +182,7 @@ function LinkedList({ title, empty, items }: { title: string; empty: string; ite
           {items.map((i) => (
             <li key={i.id}>
               <a href={i.href} className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-mist">
-                <span className="font-mono text-xs">{i.label}</span>
+                <span className="whitespace-nowrap font-mono text-xs">{i.label}</span>
                 <span className="flex items-center gap-2 text-xs text-muted-foreground">
                   {i.meta} {i.badge}
                 </span>

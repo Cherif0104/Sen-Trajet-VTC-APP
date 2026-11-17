@@ -53,14 +53,14 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/jour
             ) : (
               <span className="text-xs text-muted-foreground">Système / visiteur</span>
             ),
-            a: <span className="font-mono text-xs">{a.action}</span>,
+            a: <span className="whitespace-nowrap font-mono text-xs">{a.action}</span>,
             e: (
               <span className="text-xs text-muted-foreground">
                 {a.entityType}
                 {a.details ? <span className="block max-w-xs truncate font-mono">{JSON.stringify(a.details)}</span> : null}
               </span>
             ),
-            ip: <span className="font-mono text-xs text-muted-foreground">{a.ip ?? "—"}</span>,
+            ip: <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">{a.ip ?? "—"}</span>,
           },
         }))}
         empty={<EmptyState title="Aucune entrée" />}

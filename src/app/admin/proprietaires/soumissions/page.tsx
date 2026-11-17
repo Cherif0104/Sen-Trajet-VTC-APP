@@ -44,7 +44,7 @@ export default async function SubmissionsPage({ searchParams }: PageProps<"/admi
                 <span className="block font-medium">
                   {s.brand} {s.model} {s.year ?? ""}
                 </span>
-                <span className="font-mono text-xs text-muted-foreground">{s.reference}</span>
+                <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">{s.reference}</span>
               </span>
             ),
             o: owner,

@@ -63,7 +63,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/admin/f
           key: i.id,
           href: `/admin/factures/${i.id}`,
           cells: {
-            n: <span className="font-mono text-xs">{i.number}</span>,
+            n: <span className="whitespace-nowrap font-mono text-xs">{i.number}</span>,
             c: company ?? name ?? "—",
             t: fcfa(i.total),
             r: i.status === "annulee" ? "—" : fcfa(i.total - i.amountPaid),

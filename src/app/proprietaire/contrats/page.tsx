@@ -29,7 +29,7 @@ export default async function OwnerContractsPage() {
           cells: {
             number: (
               <span>
-                <span className="font-mono text-xs">{c.number}</span>
+                <span className="whitespace-nowrap font-mono text-xs">{c.number}</span>
                 <span className="block text-xs text-muted-foreground">{c.title}</span>
               </span>
             ),

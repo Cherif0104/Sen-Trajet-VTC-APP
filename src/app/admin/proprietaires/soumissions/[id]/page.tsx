@@ -46,7 +46,7 @@ export default async function SubmissionDetail({ params }: PageProps<"/admin/pro
         title={`${s.brand} ${s.model}${s.year ? ` ${s.year}` : ""}`}
         description={
           <span className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs">{s.reference}</span>
+            <span className="whitespace-nowrap font-mono text-xs">{s.reference}</span>
             <StatusBadge list={SUBMISSION_STATUSES} value={s.status} />
           </span>
         }

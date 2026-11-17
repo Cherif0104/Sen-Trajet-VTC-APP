@@ -39,7 +39,7 @@ export default async function OwnerDetail({ params }: PageProps<"/admin/propriet
                   <li key={s.id}>
                     <a href={`/admin/proprietaires/soumissions/${s.id}`} className="flex items-center justify-between gap-2 py-2.5 hover:text-gold">
                       <span>
-                        {s.brand} {s.model} <span className="font-mono text-xs text-muted-foreground">{s.reference}</span>
+                        {s.brand} {s.model} <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">{s.reference}</span>
                       </span>
                       <StatusBadge list={SUBMISSION_STATUSES} value={s.status} />
                     </a>

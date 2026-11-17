@@ -38,7 +38,7 @@ export default async function OwnerVehiclesPage() {
               href: `/proprietaire/vehicules/${s.id}`,
               cells: {
                 vehicle: `${s.brand} ${s.model}${s.year ? ` (${s.year})` : ""}`,
-                ref: <span className="font-mono text-xs">{s.reference}</span>,
+                ref: <span className="whitespace-nowrap font-mono text-xs">{s.reference}</span>,
                 date: fdate(s.createdAt),
                 status: <StatusBadge list={SUBMISSION_STATUSES} value={s.status} />,
               },

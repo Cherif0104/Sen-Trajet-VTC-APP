@@ -102,7 +102,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/ra
               <li key={i.id}>
                 <a href={`/admin/factures/${i.id}`} className="flex items-center justify-between gap-2 py-2.5 hover:text-gold">
                   <span>
-                    <span className="font-mono text-xs">{i.number}</span> · {company ?? name}
+                    <span className="whitespace-nowrap font-mono text-xs">{i.number}</span> · {company ?? name}
                     <span className="block text-xs text-muted-foreground">Échéance {fdate(i.dueAt)}</span>
                   </span>
                   <span className="font-semibold">{fcfa(i.total - i.amountPaid)}</span>

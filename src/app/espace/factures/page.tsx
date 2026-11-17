@@ -26,7 +26,7 @@ export default async function MyInvoicesPage() {
         rows={rows.map(({ invoice: inv }) => ({
           key: inv.id,
           cells: {
-            number: <span className="font-mono text-xs font-medium">{inv.number}</span>,
+            number: <span className="whitespace-nowrap font-mono text-xs font-medium">{inv.number}</span>,
             date: fdate(inv.issuedAt),
             due: fdate(inv.dueAt),
             total: fcfa(inv.total),

@@ -86,7 +86,7 @@ export default async function AdminDashboard() {
                   <li key={r.id}>
                     <Link href={`/admin/demandes/${r.id}`} className="flex flex-wrap items-center justify-between gap-2 py-3 hover:text-gold">
                       <span className="min-w-0">
-                        <span className="font-mono text-xs text-muted-foreground">{r.reference}</span>
+                        <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">{r.reference}</span>
                         <span className="block truncate text-sm font-medium">
                           {r.companyName ? `${r.companyName} · ` : ""}
                           {r.contactName} — {serviceLabel(r.serviceType)}

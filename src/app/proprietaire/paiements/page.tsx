@@ -35,7 +35,7 @@ export default async function OwnerPaymentsPage() {
             date: fdate(p.paidAt),
             amount: <span className="font-semibold">{fcfa(p.amount)}</span>,
             method: paymentMethodLabel(p.method),
-            contract: contractNumber ? <span className="font-mono text-xs">{contractNumber}</span> : "—",
+            contract: contractNumber ? <span className="whitespace-nowrap font-mono text-xs">{contractNumber}</span> : "—",
             ref: p.reference ?? "—",
           },
         }))}

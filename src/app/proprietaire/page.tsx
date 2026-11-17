@@ -63,7 +63,7 @@ export default async function OwnerDashboard() {
                       <p className="font-semibold">
                         {s.brand} {s.model} {s.year ? `(${s.year})` : ""}
                       </p>
-                      <p className="font-mono text-xs text-muted-foreground">{s.reference}</p>
+                      <p className="whitespace-nowrap font-mono text-xs text-muted-foreground">{s.reference}</p>
                     </div>
                     <StatusBadge list={SUBMISSION_STATUSES} value={s.status} />
                   </div>

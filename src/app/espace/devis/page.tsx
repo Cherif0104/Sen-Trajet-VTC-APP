@@ -27,9 +27,9 @@ export default async function MyQuotesPage() {
         rows={rows.map(({ quote: q, reference }) => ({
           key: q.id,
           cells: {
-            number: <span className="font-mono text-xs font-medium">{q.number}</span>,
+            number: <span className="whitespace-nowrap font-mono text-xs font-medium">{q.number}</span>,
             ref: q.requestId ? (
-              <Link href={`/espace/demandes/${q.requestId}`} className="font-mono text-xs hover:text-gold">
+              <Link href={`/espace/demandes/${q.requestId}`} className="whitespace-nowrap font-mono text-xs hover:text-gold">
                 {reference}
               </Link>
             ) : (

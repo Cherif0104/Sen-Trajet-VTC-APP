@@ -42,7 +42,7 @@ export default async function DriverHome() {
               <li key={m.id} className="space-y-3 rounded-2xl border border-border bg-white p-5">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-mono text-xs text-muted-foreground">{m.reference}</p>
+                    <p className="whitespace-nowrap font-mono text-xs text-muted-foreground">{m.reference}</p>
                     <p className="font-semibold">{fdatetime(m.startAt)}</p>
                   </div>
                   <StatusBadge list={MISSION_STATUSES} value={m.status} />

@@ -24,7 +24,7 @@ export default async function ContractDetail({ params }: PageProps<"/admin/contr
         title={c.title}
         description={
           <span className="flex items-center gap-2">
-            <span className="font-mono text-xs">{c.number}</span> <StatusBadge list={CONTRACT_STATUSES} value={c.status} />
+            <span className="whitespace-nowrap font-mono text-xs">{c.number}</span> <StatusBadge list={CONTRACT_STATUSES} value={c.status} />
             {c.sharedWithParty && <span>· Partagé avec le propriétaire</span>}
           </span>
         }

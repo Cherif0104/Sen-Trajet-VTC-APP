@@ -49,9 +49,9 @@ export default async function AdminQuotes({ searchParams }: PageProps<"/admin/de
           key: x.id,
           href: `/admin/devis/${x.id}`,
           cells: {
-            n: <span className="font-mono text-xs">{x.number}</span>,
+            n: <span className="whitespace-nowrap font-mono text-xs">{x.number}</span>,
             c: company ?? name ?? "—",
-            r: <span className="font-mono text-xs text-muted-foreground">{ref ?? "—"}</span>,
+            r: <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">{ref ?? "—"}</span>,
             t: <span className="font-medium">{fcfa(x.total)}</span>,
             s: <StatusBadge list={QUOTE_STATUSES} value={x.status} />,
             d: <span className="text-xs text-muted-foreground">{fdate(x.createdAt)}</span>,

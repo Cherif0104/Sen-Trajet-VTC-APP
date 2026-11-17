@@ -73,7 +73,7 @@ export default async function AdminRequests({ searchParams }: PageProps<"/admin/
           key: r.id,
           href: `/admin/demandes/${r.id}`,
           cells: {
-            ref: <span className="font-mono text-xs">{r.reference}</span>,
+            ref: <span className="whitespace-nowrap font-mono text-xs">{r.reference}</span>,
             client: (
               <span>
                 <span className="block font-medium">{r.contactName}</span>
