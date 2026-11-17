@@ -7,7 +7,7 @@ import { getDb, schema } from "@/server/db";
 import { qOf, vehicleOptions } from "@/server/queries/admin";
 import { deleteMaintenance, saveMaintenance } from "@/server/actions/admin-fleet";
 import { MAINTENANCE_STATUSES, MAINTENANCE_TYPES, maintenanceTypeLabel } from "@/lib/domain";
-import { fcfa, fdate, num } from "@/lib/format";
+import { fcfa, fdate, num, isoDayFromNow } from "@/lib/format";
 
 export const metadata = { title: "Maintenance" };
 
@@ -52,8 +52,8 @@ export default async function MaintenancePage({ searchParams }: PageProps<"/admi
       .limit(300),
     vehicleOptions(),
   ]);
-  const today = new Date().toISOString().slice(0, 10);
-  const soon = new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10);
+  const today = isoDayFromNow(0);
+  const soon = isoDayFromNow(15);
   const open = (s: string) => s === "planifie" || s === "en_cours";
 
   return (

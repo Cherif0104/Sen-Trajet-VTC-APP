@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { requirePermission } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import { DRIVER_STATUSES } from "@/lib/domain";
-import { fdate } from "@/lib/format";
+import { fdate, isoDayFromNow } from "@/lib/format";
 
 export const metadata = { title: "Chauffeurs" };
 
@@ -12,7 +12,7 @@ export default async function DriversPage() {
   await requirePermission("drivers.manage");
   const db = await getDb();
   const rows = await db.select().from(schema.drivers).orderBy(asc(schema.drivers.fullName));
-  const soon = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const soon = isoDayFromNow(30);
   return (
     <>
       <PageHeader title="Chauffeurs" description="Fiches chauffeurs, permis et rattachement aux comptes de l'espace chauffeur." actions={<ButtonLink href="/admin/chauffeurs/nouveau">Ajouter un chauffeur</ButtonLink>} />

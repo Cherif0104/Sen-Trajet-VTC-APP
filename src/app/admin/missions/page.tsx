@@ -5,7 +5,7 @@ import { requirePermission } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import { qOf } from "@/server/queries/admin";
 import { MISSION_STATUSES } from "@/lib/domain";
-import { fdatetime } from "@/lib/format";
+import { fdatetime, hoursAgo } from "@/lib/format";
 
 export const metadata = { title: "Missions" };
 
@@ -22,7 +22,7 @@ export default async function AdminMissions({ searchParams }: PageProps<"/admin/
   const db = await getDb();
   const conds: SQL[] = [];
   if (status) conds.push(eq(schema.missions.status, status));
-  const now = new Date(Date.now() - 12 * 3600000);
+  const now = hoursAgo(12);
   conds.push(when === "passees" ? lt(schema.missions.startAt, now) : gte(schema.missions.startAt, now));
   const rows = await db
     .select({

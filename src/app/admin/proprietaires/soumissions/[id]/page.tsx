@@ -102,7 +102,7 @@ export default async function SubmissionDetail({ params }: PageProps<"/admin/pro
           </Card>
           <Card title="Documents">
             {papers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun document transmis pour l'instant (carte grise, assurance, visite technique…).</p>
+              <p className="text-sm text-muted-foreground">Aucun document transmis pour l’instant (carte grise, assurance, visite technique…).</p>
             ) : (
               <ul className="space-y-3">
                 {papers.map(({ d, name }) => (

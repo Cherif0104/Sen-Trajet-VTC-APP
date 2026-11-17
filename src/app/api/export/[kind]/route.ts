@@ -7,14 +7,7 @@ import { financeReport, periodOf } from "@/server/queries/finance";
 import { getSettings } from "@/server/settings";
 import { accountTypeLabel, expenseCategoryLabel, invoiceStatusLabel, paymentMethodLabel, requestStatusLabel, serviceLabel } from "@/lib/domain";
 import { can } from "@/lib/permissions";
-
-const csvCell = (v: unknown) => {
-  const s = v === null || v === undefined ? "" : String(v);
-  // Neutralise les formules (injection CSV) et échappe les guillemets.
-  const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
-  return /[";\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-};
-const toCsv = (header: string[], rows: unknown[][]) => "\uFEFF" + [header, ...rows].map((r) => r.map(csvCell).join(";")).join("\r\n");
+import { toCsv } from "@/lib/csv";
 
 export async function GET(req: Request, ctx: RouteContext<"/api/export/[kind]">) {
   const user = await getCurrentUser();

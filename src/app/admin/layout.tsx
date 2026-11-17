@@ -75,7 +75,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   ];
 
   const visible: NavSection[] = sections
-    .map((s) => ({ title: s.title, items: s.items.filter((i) => can(user.role, i.perm)).map(({ perm: _perm, ...rest }) => rest) }))
+    .map((s) => ({ title: s.title, items: s.items.filter((i) => can(user.role, i.perm)).map((i) => ({ href: i.href, label: i.label, icon: i.icon, badge: i.badge, exact: i.exact })) }))
     .filter((s) => s.items.length > 0);
 
   return (

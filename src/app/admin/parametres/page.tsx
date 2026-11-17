@@ -89,7 +89,7 @@ export default async function SettingsPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">Clients, propriétaires et chauffeurs n'ont accès qu'à leur propre espace et à leurs propres données.</p>
+        <p className="mt-3 text-xs text-muted-foreground">Clients, propriétaires et chauffeurs n’ont accès qu’à leur propre espace et à leurs propres données.</p>
       </Card>
 
       <Card title="Derniers e-mails" className="mt-6">

@@ -6,7 +6,7 @@ import { getDb, schema } from "@/server/db";
 import { customerOptions } from "@/server/queries/admin";
 import { getSettings } from "@/server/settings";
 import { serviceLabel } from "@/lib/domain";
-import { fdate } from "@/lib/format";
+import { fdate, isoDayFromNow } from "@/lib/format";
 
 export const metadata = { title: "Nouveau devis" };
 
@@ -21,7 +21,7 @@ export default async function NewQuotePage({ searchParams }: PageProps<"/admin/d
     customerOptions(),
     requestId ? db.select().from(schema.requests).where(eq(schema.requests.id, requestId)).then((r) => r[0]) : undefined,
   ]);
-  const validUntil = new Date(Date.now() + settings.finance.quoteValidityDays * 86400000).toISOString().slice(0, 10);
+  const validUntil = isoDayFromNow(settings.finance.quoteValidityDays);
   const label = request
     ? `${serviceLabel(request.serviceType)}${request.startDate ? ` — ${fdate(request.startDate)}` : ""}${request.pickup ? ` — ${request.pickup}` : ""}${request.destination ? ` → ${request.destination}` : ""}`
     : "";

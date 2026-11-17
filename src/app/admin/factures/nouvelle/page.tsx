@@ -6,7 +6,7 @@ import { getDb, schema } from "@/server/db";
 import { customerOptions } from "@/server/queries/admin";
 import { getSettings } from "@/server/settings";
 import { serviceLabel } from "@/lib/domain";
-import { fdate } from "@/lib/format";
+import { fdate, isoDayFromNow } from "@/lib/format";
 
 export const metadata = { title: "Nouvelle facture" };
 
@@ -25,7 +25,7 @@ export default async function NewInvoice({ searchParams }: PageProps<"/admin/fac
   ]);
   const requestId = quote?.requestId ?? requestIdParam;
   const request = requestId ? (await db.select().from(schema.requests).where(eq(schema.requests.id, requestId)))[0] : undefined;
-  const dueAt = new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10);
+  const dueAt = isoDayFromNow(15);
   const label = request ? `${serviceLabel(request.serviceType)}${request.startDate ? ` — ${fdate(request.startDate)}` : ""} (réf. ${request.reference})` : "";
 
   return (

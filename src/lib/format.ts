@@ -40,3 +40,12 @@ export function waLink(number: string, text: string): string {
 export function telLink(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
+
+/** Date ISO (AAAA-MM-JJ) décalée de `days` jours par rapport à maintenant. */
+export function isoDayFromNow(days: number): string {
+  return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+}
+
+export function hoursAgo(hours: number): Date {
+  return new Date(Date.now() - hours * 3600000);
+}
