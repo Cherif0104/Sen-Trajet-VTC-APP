@@ -1,13 +1,59 @@
 "use client";
 
+import { createContext, useActionState, useContext, useEffect, useId, useRef } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { ActionState } from "@/lib/action-state";
+import { initialState, type ActionState } from "@/lib/action-state";
+
+const FormStateContext = createContext<ActionState | undefined>(undefined);
+export function useFormState(explicit?: ActionState) {
+  const ctx = useContext(FormStateContext);
+  return explicit ?? ctx;
+}
+
+/**
+ * Formulaire générique pour Server Actions : partage l'état (erreurs, valeurs) avec les champs,
+ * affiche le message global et peut réinitialiser ou rediriger après succès.
+ */
+export function ActionForm({
+  action,
+  children,
+  className,
+  resetOnSuccess,
+  toastOnSuccess = true,
+}: {
+  action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
+  children: React.ReactNode;
+  className?: string;
+  resetOnSuccess?: boolean;
+  toastOnSuccess?: boolean;
+}) {
+  const [state, formAction] = useActionState(action, initialState);
+  const ref = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  useEffect(() => {
+    if (state.ok) {
+      if (toastOnSuccess && state.message) toast.success(state.message);
+      if (resetOnSuccess) ref.current?.reset();
+      if (state.redirectTo) router.push(state.redirectTo);
+    }
+  }, [state, resetOnSuccess, toastOnSuccess, router]);
+  return (
+    <FormStateContext value={state}>
+      <form ref={ref} action={formAction} className={className} noValidate>
+        {!state.ok && <FormMessage state={state} />}
+        {children}
+      </form>
+    </FormStateContext>
+  );
+}
 
 export function FormField({
   label,
@@ -17,9 +63,11 @@ export function FormField({
   required,
   className,
   children,
+  htmlFor,
 }: {
   label: string;
   name: string;
+  htmlFor?: string;
   error?: string;
   hint?: string;
   required?: boolean;
@@ -28,13 +76,13 @@ export function FormField({
 }) {
   return (
     <div className={cn("grid gap-1.5", className)}>
-      <Label htmlFor={name} className="text-sm font-medium text-graphite">
+      <Label htmlFor={htmlFor ?? name} className="text-sm font-medium text-graphite">
         {label}
         {required && <span className="text-gold"> *</span>}
       </Label>
       {children}
       {error ? (
-        <p id={`${name}-error`} className="text-xs font-medium text-destructive">
+        <p id={`${htmlFor ?? name}-error`} className="text-xs font-medium text-destructive">
           {error}
         </p>
       ) : hint ? (
@@ -66,15 +114,18 @@ export function TextField({
   defaultValue,
   ...props
 }: Common & Omit<React.ComponentProps<"input">, "name" | "defaultValue">) {
+  state = useFormState(state);
+  const uid = useId();
+  const fid = `${name}-${uid}`;
   const error = state?.errors?.[name];
   return (
-    <FormField label={label} name={name} error={error} hint={hint} required={required} className={className}>
+    <FormField label={label} name={name} htmlFor={fid} error={error} hint={hint} required={required} className={className}>
       <Input
-        id={name}
+        id={fid}
         name={name}
         required={required}
         aria-invalid={!!error || undefined}
-        aria-describedby={error ? `${name}-error` : undefined}
+        aria-describedby={error ? `${fid}-error` : undefined}
         defaultValue={state?.values?.[name] ?? (defaultValue ?? undefined) ?? undefined}
         className={fieldClass}
         {...props}
@@ -93,11 +144,14 @@ export function TextAreaField({
   defaultValue,
   ...props
 }: Common & Omit<React.ComponentProps<"textarea">, "name" | "defaultValue">) {
+  state = useFormState(state);
+  const uid = useId();
+  const fid = `${name}-${uid}`;
   const error = state?.errors?.[name];
   return (
-    <FormField label={label} name={name} error={error} hint={hint} required={required} className={className}>
+    <FormField label={label} name={name} htmlFor={fid} error={error} hint={hint} required={required} className={className}>
       <Textarea
-        id={name}
+        id={fid}
         name={name}
         required={required}
         aria-invalid={!!error || undefined}
@@ -124,12 +178,15 @@ export function SelectField({
   options: readonly { value: string; label: string }[];
   placeholder?: string;
 } & Omit<React.ComponentProps<"select">, "name" | "defaultValue">) {
+  state = useFormState(state);
+  const uid = useId();
+  const fid = `${name}-${uid}`;
   const error = state?.errors?.[name];
   return (
-    <FormField label={label} name={name} error={error} hint={hint} required={required} className={className}>
+    <FormField label={label} name={name} htmlFor={fid} error={error} hint={hint} required={required} className={className}>
       <div className="relative">
         <select
-          id={name}
+          id={fid}
           name={name}
           required={required}
           aria-invalid={!!error || undefined}
@@ -169,9 +226,11 @@ export function CheckboxField({
   hint?: string;
   value?: string;
 }) {
+  const state = useFormState();
+  const checked = state?.values ? state.values[name] === value : defaultChecked;
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-input bg-white p-3 text-sm has-[:checked]:border-gold has-[:checked]:bg-accent">
-      <input type="checkbox" name={name} value={value} defaultChecked={defaultChecked} className="mt-0.5 size-4 accent-[#C99A32]" />
+      <input type="checkbox" name={name} value={value} defaultChecked={checked} key={String(checked)} className="mt-0.5 size-4 accent-[#C99A32]" />
       <span>
         <span className="font-medium text-graphite">{label}</span>
         {hint && <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>}
