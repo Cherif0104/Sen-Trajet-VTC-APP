@@ -1,99 +1,42 @@
-export function fcfa(value: number) {
-  return `${new Intl.NumberFormat("fr-FR").format(Math.round(value))} F`
+const nf = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+
+export function fcfa(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined) return "—";
+  return `${nf.format(amount).replace(/\u202f|\u00a0/g, " ")} FCFA`;
 }
 
-export function formatWhen(value: string | Date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Africa/Dakar",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value))
+export function num(n: number | null | undefined): string {
+  if (n === null || n === undefined) return "—";
+  return nf.format(n).replace(/\u202f|\u00a0/g, " ");
 }
 
-export function formatTime(value: string | Date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Africa/Dakar",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value))
+const TZ = "Africa/Dakar";
+
+export function fdate(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const d = typeof value === "string" ? new Date(value.length === 10 ? `${value}T12:00:00Z` : value) : value;
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", timeZone: TZ });
 }
 
-export function formatKm(meters: number) {
-  const km = meters / 1000
-  if (km < 10) return `${km.toFixed(1).replace(".", ",")} km`
-  return `${Math.round(km)} km`
+export function fdatetime(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const d = typeof value === "string" ? new Date(value) : value;
+  return d.toLocaleString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: TZ });
 }
 
-export function formatMinutes(seconds: number) {
-  const minutes = Math.max(1, Math.round(seconds / 60))
-  if (minutes < 60) return `${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  const rest = minutes % 60
-  return rest ? `${hours} h ${rest}` : `${hours} h`
+export function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
-export function seatsLabel(count: number) {
-  return count > 1 ? `${count} sièges` : `${count} siège`
+export function waLink(number: string, text: string): string {
+  return `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
 }
 
-export function firstName(name: string) {
-  return name.trim().split(/\s+/)[0] ?? name
-}
-
-export function dakarOffsetDate(offset: number) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Africa/Dakar",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date())
-  const [year, month, day] = parts.split("-").map(Number)
-  return new Date(Date.UTC(year, (month ?? 1) - 1, (day ?? 1) + offset)).toISOString().slice(0, 10)
-}
-
-export function formatDay(value: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Africa/Dakar",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(new Date(`${value}T12:00:00.000Z`))
-}
-
-export const AMENITY_LABELS: Record<string, string> = {
-  clim: "Climatisation",
-  bagage: "Bagages",
-  musique: "Musique",
-  non_fumeur: "Non-fumeur",
-}
-
-export function rideStatusLabel(status: string) {
-  const labels: Record<string, string> = {
-    matching: "Recherche",
-    accepted: "Chauffeur en route",
-    arrived: "Au point de rendez-vous",
-    in_progress: "En course",
-    completed: "Terminée",
-    cancelled: "Annulée",
-  }
-  return labels[status] ?? status
-}
-
-export function txLabel(type: string) {
-  const labels: Record<string, string> = {
-    welcome: "Crédit de bienvenue",
-    topup: "Recharge",
-    deposit: "Dépôt reçu en agence",
-    ride_payment: "Paiement course",
-    ride_earning: "Gain course",
-    commission: "Commission espèces",
-    refund: "Remboursement",
-    carpool_payment: "Paiement covoiturage",
-    carpool_earning: "Gain covoiturage",
-    cancel_fee: "Frais d’annulation",
-  }
-  return labels[type] ?? type
+export function telLink(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }

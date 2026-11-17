@@ -1,68 +1,36 @@
-# Sen Trajet
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Courses immédiates et sièges réservés, pour le Sénégal. Le prix en francs CFA est calculé avant la confirmation, le dispatch et les remboursements tournent sans validation manuelle.
+## Getting Started
 
-Sen Trajet : *sen* pour le Sénégal, *trajet* pour la route. La promesse : *la route, sans négocier au feu.*
-
-## Lancer
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-L’application écoute sur [http://127.0.0.1:43123](http://127.0.0.1:43123). L’ouverture est un écran : créer un compte, ou se connecter.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Comptes gardés pour les tests, mot de passe `Yoon2026!` (ils ne sont plus proposés à l’écran) :
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-| Rôle | E-mail |
-| --- | --- |
-| Passagère | awa.ndiaye@yoon.sn |
-| Chauffeur | moussa.diop@yoon.sn |
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Exploitation : `ops@sentrajet.sn`, mot de passe `SenTrajet2026!`. Le lien n’apparaît que sur ce compte.
+## Learn More
 
-Awa a 15 000 F de crédit. Moussa est chauffeur Éco, hors ligne, Hyundai Grand i10, plaque DK 2026 SN. Une course sans chauffeur humain reste en recherche : personne n’est inventé.
+To learn more about Next.js, take a look at the following resources:
 
-## Ce que fait le produit
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- **Course** : Éco, Confort, Confort+. Le prix est affiché avant de monter. Jakarta (livraison et moto) et le van ne sont pas dans le choix passager.
-- **Covoiturage** : le chauffeur publie un départ, les passagers réservent un siège. Les départs marqués démo ne sortent plus dans la recherche.
-- **Trajet Serein** : conductrice uniquement. S’il n’y en a pas, la course est refusée.
-- **Paiement** : solde et espèces. Wave, Orange Money et Free Money affichent « Bientôt » et ne sont pas encaissés.
-- **Commission** : 12 % sur Éco, Confort et Confort+, 10 % sur le Jakarta (moteur) et le covoiturage.
-- **Chauffeur** : un nouveau dossier reste en revue tant qu’un admin ne le valide pas. Hors ligne tant que ce n’est pas fait.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Données
+## Deploy on Vercel
 
-Sans `DATABASE_URL`, les données vivent dans `data/pglite` (ignoré par git). Le schéma `src/server/schema.sql` s’applique au démarrage.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Les villes des 14 régions sont dans `src/data/senegal-lieux.json` (25 octobre 2026). Limites régionales : geoBoundaries SEN-ADM1, millésime 2019, OCHA et Gouvernement du Sénégal, mise à jour du 19 janvier 2023. Lieux : GeoNames SN, chefs-lieux et localités d’au moins 5 000 habitants. La recherche les place devant Photon et Nominatim. Le catalogue de rues de Dakar ne sert que si les deux géocodeurs échouent.
-
-Pour Supabase ou un Postgres de VPS :
-
-```bash
-DATABASE_URL="postgresql://..." AUTH_SECRET="un-secret-long" npm run dev
-```
-
-Sur Vercel, ces deux variables sont obligatoires : une fonction serverless ne conserve pas le fichier PGlite d’une instance à l’autre. Sans `DATABASE_URL`, l’API répond que le Postgres dédié manque. Utilisez la chaîne de connexion en mode transaction (`prepare: false` est déjà réglé), hôte `aws-1-eu-west-3.pooler.supabase.com`, port `6543`. Les politiques RLS sont activées sans policy pour le rôle anonyme : seul le serveur, avec l’utilisateur `sentrajet`, lit et écrit.
-
-Un nom de domaine n’est pas nécessaire pour une première version, ni pour un essai sur Vercel, ni pour préparer une fiche Play Store : le magasin identifie l’application par son nom de paquet. Un domaine sert plus tard aux liens, aux e-mails et au site. Un VPS n’est pas nécessaire non plus. Vercel sert l’application. Le Postgres dédié est le projet Supabase **Sen Trajet VTC**, région Paris (`eu-west-3`), référence `krlxtssllnsycrkwnzrm`. Le mot de passe reste dans `DATABASE_URL`, jamais dans le dépôt.
-
-L’espace admin enregistre la grille (base, kilomètre, commission, forfait aéroport, prix des sièges). L’espace client peut passer un compte en entreprise et ouvrir ou fermer course, sièges, lieux, facture, plafond et Trajet Serein.
-
-## Ce qu’un acheteur peut voir, et ce qui reste simulé
-
-Une course et un siège se déroulent de bout en bout : prix verrouillé, recherche d’un chauffeur, portefeuille, commission, annulation, remboursement. Les écritures du solde sont de vraies lignes.
-
-Wave, Orange Money et Free Money ne débitent personne et ne se confirment plus tout seuls. Les comptes `awa.ndiaye@yoon.sn` et `moussa.diop@yoon.sn` restent des comptes de test.
-
-Les commissions en vigueur sont celles du code : 12 % pour Éco, Confort et Confort+, 10 % pour le Jakarta et le covoiturage. Le déploiement Vercel branche `DATABASE_URL` et `AUTH_SECRET` sur le projet Sen Trajet VTC.
-
-## Scripts
-
-```bash
-npm test
-npm run lint
-npm run build
-```
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

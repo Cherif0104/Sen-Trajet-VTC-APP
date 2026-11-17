@@ -1,17 +1,23 @@
-import { NextResponse, type NextRequest } from "next/server"
-import { readSession } from "@/server/token"
+import { NextResponse, type NextRequest } from "next/server";
+
+const PROTECTED = ["/espace", "/proprietaire", "/chauffeur", "/admin"];
 
 export function proxy(request: NextRequest) {
-  const userId = readSession(request.cookies.get("yoon_session")?.value)
-  if (!userId) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/connexion"
-    url.searchParams.set("next", request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+  const { pathname, search } = request.nextUrl;
+  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  if (isProtected && !request.cookies.has("st_session")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/connexion";
+    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return NextResponse.redirect(url);
   }
-  return NextResponse.next()
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname + search);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
-}
+  matcher: ["/((?!_next/static|_next/image|images|favicon.ico|robots.txt|sitemap.xml).*)"],
+};
